@@ -291,6 +291,7 @@ def on_draw():
         pass
 
 def run(interval):
+    """Entry"""
     pyglet.clock.schedule_interval(emonitor.synch_state, interval)
 
     pyglet.app.run()
