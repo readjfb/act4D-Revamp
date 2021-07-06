@@ -12,7 +12,7 @@ class data_saver(object):
         :return: returns nothing
         """
         self.data_cache = []
-        self.save_dir = os.getcwd() + "/tests/" + save_directory
+        self.save_dir = os.getcwd() + "/data/" + save_directory
 
         self.state = state
 

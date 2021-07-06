@@ -1,12 +1,12 @@
 # Based on EMonitor refresh from the C# Code
 # Built to operate with a Queue rather than UDP Socket
 
-import socket, struct, pyglet
+import pyglet
 from multiprocessing import Process, Pipe
 # import numpy as np
 
 class EMonitor:
-    def __init__(self, pipe_end):
+    def __init__(self):
         self.n_sounds = 13
 
         # Initialize the target forces
@@ -28,17 +28,18 @@ class EMonitor:
 
         self.stop_trigger = 0
 
-        self.pipe_end = pipe_end
+        self.pipe_end = None
 
         # Graphics stuff below here
         self.thread_running = True
 
-    def synch_state(self, data):
+    def synch_state(self, dt):
         '''
         Validate package size in bytes first
         '''
         io_array = None
 
+        # Clear the buffer and take the most recent datapoint
         while self.pipe_end.poll():
             io_array = self.pipe_end.recv()
 
@@ -58,10 +59,12 @@ class EMonitor:
         self.matchF = io_array[7]
 
         # This should be an array of booleans
-        self.sound_trigger = self.io_array[8]
+        self.sound_trigger = io_array[8]
 
         # This should be a single boolean value
-        self.stop_trigger = self.io_array[9]
+        self.stop_trigger = io_array[9]
+
+        # print(self.match_tor, self.matchF)
 
 
 # Define RGB colors
@@ -120,6 +123,7 @@ emonitor = EMonitor()
 @event_loop.event
 def on_window_close(window):
     print("Hey")
+    window.close()
     event_loop.exit()
     return pyglet.event.EVENT_HANDLED
 
@@ -267,6 +271,9 @@ def on_draw():
 
         # My custom drawing function is very slow, so only use it for the
         # moving circle
+        batch.draw()
+
+        batch = pyglet.graphics.Batch()
         a.append(custom_draw_circle(center_x, center_y,
                                     representation_radius,
                                     RED, 3, batch))
@@ -290,8 +297,10 @@ def on_draw():
         print("Zero division detected")
         pass
 
-def run(interval):
+def run(interval, conn):
     """Entry"""
+    emonitor.pipe_end = conn
+
     pyglet.clock.schedule_interval(emonitor.synch_state, interval)
 
     pyglet.app.run()

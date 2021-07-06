@@ -1,42 +1,43 @@
 import nidaqmx as daq
-from nidaqmx.constants import CONTINUOUS, READ_ALL_AVAILABLE
+from nidaqmx.constants import READ_ALL_AVAILABLE, AcquisitionType
 import time
 import warnings
 
 class NI_Interface:
-    def __init__(self, daq_name, channels, stream_rate=1000) -> None:
-        self.daqtask = daq.Task(daq_name)
+    def __init__(self, channels=["Dev1/ai0","Dev1/ai1"], stream_rate=1000) -> None:
+        self.daqtask = daq.Task()
         self.intended_stream_rate = stream_rate
 
         for chn in channels:
             self.daqtask.ai_channels.add_ai_voltage_chan(chn)
-        self.daqtask.timing.cfg_samp_clk_timing(stream_rate, sample_mode=CONTINUOUS)
+        self.daqtask.timing.cfg_samp_clk_timing(stream_rate, sample_mode=AcquisitionType.CONTINUOUS)
 
+        self.daqtask.start()
         self.prev_time = time.perf_counter()
 
     def read_samples(self):
         """Reads in the samples from the daqtask
 
         Returns:
-            2d list: formatted as channel1, channel2... channelN, sample time
+            List of Lists: One list for each channel, final list is T
         """
-        try:
-            samples = self.daqtask.read(number_of_samples_per_channel=READ_ALL_AVAILABLE)
-        except Exception:
-            # DO BETTER CATCHING!!!!
-            return []
+        samples = self.daqtask.read(number_of_samples_per_channel=READ_ALL_AVAILABLE)
 
-        time_delta = (time.perf_counter() - self.prev_time) / len(samples)
+        if len(samples[0]) == 0:
+            return None
 
-        if time_delta - self.intended_stream_rate > 0.05 * self.intended_stream_rate:
+        next_time = time.perf_counter()
+
+        time_delta = (time.perf_counter() - self.prev_time) / len(samples[0])
+
+        if abs(time_delta - self.intended_stream_rate) > 0.05 * self.intended_stream_rate:
             warnings.warn('Data intake is not running smoothly')
 
-        tme = self.prev_time()
+        samples.append([self.prev_time + (time_delta*i) for i in range(len(samples[0]))])
 
-        for sample in samples:
-            sample.append(tme)
-            tme += time_delta
-
-        self.prev_time = time.perf_counter()
+        self.prev_time = next_time
 
         return samples
+
+    def safe_exit(self):
+        self.daqtask.close()
