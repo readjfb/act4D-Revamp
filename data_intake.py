@@ -3,14 +3,17 @@ from nidaqmx.constants import READ_ALL_AVAILABLE, AcquisitionType
 import time
 import warnings
 
+
 class NI_Interface:
-    def __init__(self, channels=["Dev1/ai0","Dev1/ai1"], stream_rate=1000) -> None:
+    def __init__(self, channels=["Dev1/ai0", "Dev1/ai1"], stream_rate=1000) -> None:
         self.daqtask = daq.Task()
         self.intended_stream_rate = stream_rate
 
         for chn in channels:
             self.daqtask.ai_channels.add_ai_voltage_chan(chn)
-        self.daqtask.timing.cfg_samp_clk_timing(stream_rate, sample_mode=AcquisitionType.CONTINUOUS)
+        self.daqtask.timing.cfg_samp_clk_timing(
+            stream_rate, sample_mode=AcquisitionType.CONTINUOUS
+        )
 
         self.daqtask.start()
         self.prev_time = time.perf_counter()
@@ -30,10 +33,15 @@ class NI_Interface:
 
         time_delta = (time.perf_counter() - self.prev_time) / len(samples[0])
 
-        if abs(time_delta - self.intended_stream_rate) > 0.05 * self.intended_stream_rate:
-            warnings.warn('Data intake is not running smoothly')
+        if (
+            abs(time_delta - self.intended_stream_rate)
+            > 0.05 * self.intended_stream_rate
+        ):
+            warnings.warn("Data intake is not running smoothly")
 
-        samples.append([self.prev_time + (time_delta*i) for i in range(len(samples[0]))])
+        samples.append(
+            [self.prev_time + (time_delta * i) for i in range(len(samples[0]))]
+        )
 
         self.prev_time = next_time
 

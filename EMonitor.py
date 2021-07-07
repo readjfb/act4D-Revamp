@@ -2,8 +2,11 @@
 # Built to operate with a Queue rather than UDP Socket
 
 import pyglet
+import os
 from multiprocessing import Process, Pipe
+
 # import numpy as np
+
 
 class EMonitor:
     def __init__(self):
@@ -34,9 +37,9 @@ class EMonitor:
         self.thread_running = True
 
     def synch_state(self, dt):
-        '''
+        """
         Validate package size in bytes first
-        '''
+        """
         io_array = None
 
         # Clear the buffer and take the most recent datapoint
@@ -45,7 +48,6 @@ class EMonitor:
 
         if not io_array:
             return
-
 
         # These should all be doubles
         self.target_tor = io_array[0]
@@ -94,19 +96,22 @@ pyglet.gl.glClearColor(*WHITE, 255)
 
 # Load the sounds
 SOUND_DIRECTORY = "C:\\Users\\pthms\\Desktop\\Local UDP Revamp\\soundCues\\"
-FILE_NAMES = ["hold.wav",
-              "in.wav",
-              "out.wav",
-              "match.wav",
-              "relax.wav",
-              "startingtrial.wav",
-              "endingtrial.wav",
-              "Out of Range.wav",
-              "Wrong Direction.wav",
-              "in.wav",
-              "out.wav",
-              "up.wav",
-              "down.wav"]
+# SOUND_DIRECTORY = os.getcwd() + "\\soundCues\\"
+FILE_NAMES = [
+    "hold.wav",
+    "in.wav",
+    "out.wav",
+    "match.wav",
+    "relax.wav",
+    "startingtrial.wav",
+    "endingtrial.wav",
+    "Out of Range.wav",
+    "Wrong Direction.wav",
+    "in.wav",
+    "out.wav",
+    "up.wav",
+    "down.wav",
+]
 
 SOUND_CUES = []
 for file in FILE_NAMES:
@@ -120,12 +125,14 @@ print(f"Loaded {len(SOUND_CUES)} sounds successfully")
 # Initialize the EMonitor
 emonitor = EMonitor()
 
+
 @event_loop.event
 def on_window_close(window):
     print("Hey")
     window.close()
     event_loop.exit()
     return pyglet.event.EVENT_HANDLED
+
 
 def custom_draw_circle_one_thick(x_center, y_center, radius, color, batch):
     # Implements mid-point circle drawing algorithm
@@ -143,7 +150,7 @@ def custom_draw_circle_one_thick(x_center, y_center, radius, color, batch):
     points.append([x_center, y_center - X])
 
     if radius > 0:
-        points.append([X + x_center, -Y  + y_center])
+        points.append([X + x_center, -Y + y_center])
         points.append([Y + x_center, X + y_center])
         points.append([-Y + x_center, X + y_center])
 
@@ -160,19 +167,19 @@ def custom_draw_circle_one_thick(x_center, y_center, radius, color, batch):
             X -= 1
             P = P + 2 * Y - 2 * X + 1
 
-        if (X < Y):
+        if X < Y:
             break
 
-        points.append([X + x_center, Y  + y_center])
-        points.append([-X + x_center, Y  + y_center])
-        points.append([X + x_center, -Y  + y_center])
-        points.append([-X + x_center, -Y  + y_center])
+        points.append([X + x_center, Y + y_center])
+        points.append([-X + x_center, Y + y_center])
+        points.append([X + x_center, -Y + y_center])
+        points.append([-X + x_center, -Y + y_center])
 
         if X != Y:
-            points.append([Y + x_center, X  + y_center])
-            points.append([-Y + x_center, X  + y_center])
-            points.append([Y + x_center, -X  + y_center])
-            points.append([-Y + x_center, -X  + y_center])
+            points.append([Y + x_center, X + y_center])
+            points.append([-Y + x_center, X + y_center])
+            points.append([Y + x_center, -X + y_center])
+            points.append([-Y + x_center, -X + y_center])
 
     num_points = len(points)
     # Concatanate points list; gl expects list in format [x0, y0, x1, y1...]
@@ -180,11 +187,14 @@ def custom_draw_circle_one_thick(x_center, y_center, radius, color, batch):
 
     color_list = color * num_points
 
-    batch.add(num_points,
-              pyglet.gl.GL_POINTS,
-              None,
-              ('v2i', collapsed_points),
-              ('c3B', color_list))
+    batch.add(
+        num_points,
+        pyglet.gl.GL_POINTS,
+        None,
+        ("v2i", collapsed_points),
+        ("c3B", color_list),
+    )
+
 
 def custom_draw_circle(x_center, y_center, radius, color, thickness, batch):
     edges = min(thickness, radius)
@@ -194,24 +204,22 @@ def custom_draw_circle(x_center, y_center, radius, color, thickness, batch):
 
         custom_draw_circle_one_thick(x_center, y_center, rad, color, batch)
 
+
 def draw_circle(x, y, radius, color, bg_color, thickness, batch):
     a = pyglet.shapes.Circle(x, y, radius, color=color, batch=batch)
     b = None
 
-    if radius - (2*thickness) > 0:
-        b = pyglet.shapes.Circle(x, y,
-                                 radius - (2 * thickness),
-                                 color=bg_color,
-                                 batch=batch)
+    if radius - (2 * thickness) > 0:
+        b = pyglet.shapes.Circle(
+            x, y, radius - (2 * thickness), color=bg_color, batch=batch
+        )
 
     return [a, b]
 
+
 def draw_full_line(y, length, color, width, batch):
-    return pyglet.shapes.Line(0, y,
-                              length, y,
-                              width=width,
-                              color=color,
-                              batch=batch)
+    return pyglet.shapes.Line(0, y, length, y, width=width, color=color, batch=batch)
+
 
 @window.event
 def on_draw():
@@ -247,14 +255,21 @@ def on_draw():
 
         window.clear()
 
-        radii = sorted([(match_target_radius, BLACK),
-                        (lower_range_radius, BLUE),
-                        (upper_range_radius, BLUE)], reverse=True)
+        radii = sorted(
+            [
+                (match_target_radius, BLACK),
+                (lower_range_radius, BLUE),
+                (upper_range_radius, BLUE),
+            ],
+            reverse=True,
+        )
 
-        lines = [(lowF_line, BLUE),
-                (upF_line, BLUE),
-                (matchY, RED),
-                (targetF_line, BLACK)]
+        lines = [
+            (lowF_line, BLUE),
+            (upF_line, BLUE),
+            (matchY, RED),
+            (targetF_line, BLACK),
+        ]
 
         batch = pyglet.graphics.Batch()
 
@@ -263,8 +278,8 @@ def on_draw():
 
         a = []
 
-        for radius in radii:
-            a.append(draw_circle(center_x, center_y, *radius, WHITE, 3, batch))
+        for rad, col in radii:
+            a.append(draw_circle(center_x, center_y, rad, col, WHITE, 3, batch))
 
         for line in lines:
             a.append(draw_full_line(line[0], WIDTH, line[1], 3, batch))
@@ -274,12 +289,12 @@ def on_draw():
         batch.draw()
 
         batch = pyglet.graphics.Batch()
-        a.append(custom_draw_circle(center_x, center_y,
-                                    representation_radius,
-                                    RED, 3, batch))
+        a.append(
+            custom_draw_circle(center_x, center_y, representation_radius, RED, 3, batch)
+        )
 
-        fps_display.draw()
         batch.draw()
+        fps_display.draw()
 
         # Sound stuff here
         for i in range(emonitor.n_sounds):
@@ -292,10 +307,11 @@ def on_draw():
             print("Stop sounds")
             while emonitor.players:
                 emonitor.players.pop().pause()
-                emonitor.sounds_playing = [False for i in range(emonitor.n_sounds)]
+                emonitor.sounds_playing = [False] * emonitor.n_sounds
     except ZeroDivisionError:
         print("Zero division detected")
         pass
+
 
 def run(interval, conn):
     """Entry"""
@@ -305,6 +321,6 @@ def run(interval, conn):
 
     pyglet.app.run()
 
+
 if __name__ == "__main__":
     pass
-

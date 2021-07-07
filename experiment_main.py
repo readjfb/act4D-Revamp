@@ -7,8 +7,15 @@ from EMonitor import run as emonitor_run
 
 
 def main():
+    # This is the em (emonitor) section, delegating the subprocess
     em_parent_conn, em_child_conn = Pipe()
-    em_p = Process(target=emonitor_run, args=(1/60, em_child_conn,))
+    em_p = Process(
+        target=emonitor_run,
+        args=(
+            1 / 60,
+            em_child_conn,
+        ),
+    )
 
     em_p.start()
 
@@ -21,7 +28,7 @@ def main():
 
         if n:
             last = n
-            
+
             timesteps = []
 
             for i in range(len(last[0])):
@@ -46,8 +53,8 @@ def main():
 
             em_parent_conn.send(arr)
 
-            '''
-            # These should all be doubles
+            """
+            # These should be doubles
             self.target_tor = io_array[0]
             self.low_lim_tor = io_array[1]
             self.up_lim_tor = io_array[2]
@@ -58,14 +65,15 @@ def main():
             self.up_limF = io_array[6]
             self.matchF = io_array[7]
 
-            # This should be an array of booleans
+            # This should be an array of booleans, 13 sounds in the current model
             self.sound_trigger = self.io_array[8]
 
             # This should be a single boolean value
-            self.stop_trigger = self.io_array[9]'''
+            self.stop_trigger = self.io_array[9]"""
 
-    saver.save_data("Testing")
     ni.safe_exit()
+    saver.save_data("Testing")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
