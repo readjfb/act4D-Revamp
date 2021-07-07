@@ -18,6 +18,8 @@ class data_saver(object):
 
         self.state = state
 
+        self.header = None
+
     def add_data(self, line):
         """Add a list to be appended
 
@@ -28,11 +30,21 @@ class data_saver(object):
 
     def clear(self):
         """
-        Clear the data cache
+        Clear the data cache AND the header
 
         :return: returns nothing
         """
+        self.header = None
         self.data_cache.clear()
+
+    def add_header(self, header_list):
+        """Adds a header. Care should be taken S.T. the header has the proper order
+
+        Args:
+            header_list list[any]: Ordered list of desired header
+        """
+
+        self.header = header_list
 
     def save_data(self, mode):
         """
@@ -59,6 +71,9 @@ class data_saver(object):
             i += 1
 
         with open(f"{path}{mode}_data{i}.csv", "w") as file:
+            if self.header:
+                file.write(','.join([str(x) for x in self.header] + "\n"))
+
             for line in self.data_cache:
                 file.write(",".join([str(x) for x in line]) + "\n")
 
@@ -73,5 +88,7 @@ if __name__ == "__main__":
     save.add_data([2, 5, 1, 5])
     save.add_data([3, 7, 7, 7])
     save.add_data([4, 8, 8, 8])
+
+    save.add_header(["Index", "Round", "Par1", "Par2"])
 
     save.save_data("MVT_L")

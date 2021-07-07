@@ -1,5 +1,4 @@
 from multiprocessing import Process, Pipe
-from time import sleep, time
 from data_intake import NI_Interface
 from data_processor import data_processor
 from Saver import data_saver
@@ -32,44 +31,30 @@ def main():
             timesteps = []
 
             for i in range(len(last[0])):
+                # Transpose the matrix from 3xn to nx3
                 timesteps.append([C[i] for C in last])
                 saver.add_data(timesteps[-1])
 
-            arr = [0] * 10
+            transfer = dict()
 
-            arr[0] = 0.6
-            arr[1] = 0.5
-            arr[2] = 0.7
-            arr[3] = timesteps[0][0]
+            # These should all be doubles
+            transfer['target_tor'] = 0.6
+            transfer['low_lim_tor'] = 0.5
+            transfer['up_lim_tor'] = 0.7
+            transfer['match_tor'] = timesteps[0][0]
 
-            arr[4] = 0.7
-            arr[5] = 0.6
-            arr[6] = 0.8
-            arr[7] = timesteps[0][1]
+            transfer['targetF'] = 0.7
+            transfer['low_limF'] = 0.6
+            transfer['up_limF'] = 0.8
+            transfer['matchF'] = timesteps[0][1]
 
-            arr[8] = [0] * 13
-
-            arr[9] = False
-
-            em_parent_conn.send(arr)
-
-            """
-            # These should be doubles
-            self.target_tor = io_array[0]
-            self.low_lim_tor = io_array[1]
-            self.up_lim_tor = io_array[2]
-            self.match_tor = io_array[3]
-
-            self.targetF = io_array[4]
-            self.low_limF = io_array[5]
-            self.up_limF = io_array[6]
-            self.matchF = io_array[7]
-
-            # This should be an array of booleans, 13 sounds in the current model
-            self.sound_trigger = self.io_array[8]
+            # This should be an array of boolean values
+            transfer['sound_trigger'] = [0] * 13
 
             # This should be a single boolean value
-            self.stop_trigger = self.io_array[9]"""
+            transfer['stop_trigger'] = False
+
+            em_parent_conn.send(transfer)
 
     ni.safe_exit()
     saver.save_data("Testing")
