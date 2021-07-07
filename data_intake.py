@@ -3,11 +3,12 @@ from nidaqmx.constants import READ_ALL_AVAILABLE, AcquisitionType
 import time
 import warnings
 
+# This might need to run in it's own process if it's not running at an acceptible rate
 
 class NI_Interface:
     def __init__(self, channels=["Dev1/ai0", "Dev1/ai1"], stream_rate=1000) -> None:
         self.daqtask = daq.Task()
-        self.intended_stream_rate = stream_rate
+        self.intended_stream_rate = 1 / stream_rate
 
         for chn in channels:
             self.daqtask.ai_channels.add_ai_voltage_chan(chn)
@@ -24,7 +25,8 @@ class NI_Interface:
         Returns:
             List of Lists: One list for each channel, final list is T
         """
-        samples = self.daqtask.read(number_of_samples_per_channel=READ_ALL_AVAILABLE)
+        samples = self.daqtask.read(
+            number_of_samples_per_channel=READ_ALL_AVAILABLE)
 
         if len(samples[0]) == 0:
             return None
@@ -33,10 +35,7 @@ class NI_Interface:
 
         time_delta = (time.perf_counter() - self.prev_time) / len(samples[0])
 
-        if (
-            abs(time_delta - self.intended_stream_rate)
-            > 0.05 * self.intended_stream_rate
-        ):
+        if (abs(1 - (time_delta / self.intended_stream_rate)) > 0.1 and self.prev_time > 3):
             warnings.warn("Data intake is not running smoothly")
 
         samples.append(
@@ -48,4 +47,6 @@ class NI_Interface:
         return samples
 
     def safe_exit(self):
+        self.daqtask.stop()
         self.daqtask.close()
+        print("Closed DAQ")

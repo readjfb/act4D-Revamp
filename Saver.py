@@ -11,7 +11,7 @@ class data_saver(object):
         Construct a new 'data_saver' object.
 
         :param save_directory: The name of the directory within the /data/ folder to be saved to
-        :return: returns nothing
+        :return: returns new datasaver object
         """
         self.data_cache = []
         self.save_dir = os.getcwd() + "/data/" + save_directory
@@ -61,7 +61,7 @@ class data_saver(object):
         try:
             os.makedirs(path)
         except OSError:
-            print("Creation of the directory %s failed" % path)
+            # print("Creation of the directory %s failed" % path)
             pass
         else:
             print("Successfully created the directory %s" % path)
