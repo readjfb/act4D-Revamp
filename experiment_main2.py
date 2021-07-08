@@ -145,7 +145,7 @@ def main():
         transfer["stop_trigger"] = False
 
         # For all of the other stuff that we want saved, add to this call
-        saver.add_data(datapoint)
+        saver.add_data(data)
 
         experiment.match_tor, experiment.matchF, experiment.timestep = data
 
