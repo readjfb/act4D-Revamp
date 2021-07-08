@@ -39,7 +39,7 @@ class NI_Interface:
 
 
 def data_sender(
-    sample_delay, data_send_queue: Queue = None, communication_queue: Queue = None
+    sample_delay, send_queue: Queue = None, communication_queue: Queue = None
 ):
     ni_interface = NI_Interface()
 
@@ -66,11 +66,11 @@ def data_sender(
 
             prev_time = time.perf_counter()
 
-        if not data_send_queue.full():
-            data_send_queue.put_nowait(sample_cache)
+        if not send_queue.full():
+            send_queue.put_nowait(sample_cache)
             sample_cache.clear()
 
-        if not communication_queue.empty():
+        while not communication_queue.empty():
             val = communication_queue.get_nowait()
 
             if val == "EXIT":

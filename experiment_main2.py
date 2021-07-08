@@ -78,15 +78,15 @@ def main():
     )
     em_p.start()
 
-    # Initialize NI-Interface
+    # Initialize data collection
     HZ = 1000
 
-    data_transfer_queue = Queue()
+    data_intake_queue = Queue()
     data_intake_comm_queue = Queue()
-    QUEUES.append(data_transfer_queue)
+    QUEUES.append(data_intake_queue)
     QUEUES.append(data_intake_comm_queue)
     data_intake_p = Process(
-        target=data_sender, args=(1 / HZ, data_transfer_queue, data_intake_comm_queue)
+        target=data_sender, args=(1 / HZ, data_intake_queue, data_intake_comm_queue)
     )
     data_intake_p.start()
 
@@ -121,8 +121,8 @@ def main():
     while em_p.is_alive():
         data = None
 
-        while data_transfer_queue.not_empty:
-            data_seq = data_transfer_queue.get_nowait()
+        while data_intake_queue.not_empty:
+            data_seq = data_intake_queue.get_nowait()
             for point in data_seq:
                 data_buffer.append(point)
 
@@ -140,10 +140,25 @@ def main():
         transfer["sound_trigger"] = [False] * 13
         transfer["stop_trigger"] = False
 
-        # For all of the other stuff that we want saved, add to this call
-        saver.add_data(data)
-
         experiment.match_tor, experiment.matchF, experiment.timestep = data
+
+        # For all of the other stuff that we want saved, add to this call
+        data_save_seq = [
+            experiment.match_tor,
+            experiment.matchF,
+            experiment.timestep,
+            experiment.experiment_mode,
+            experiment.mode_state,
+            experiment.state_section,
+            experiment.paused,
+            experiment.particiapnt_years_since_stroke,
+            experiment.participant_age,
+            experiment.participant_dominant_arm,
+            experiment.participant_paretic_arm,
+            experiment.partipant_gender,
+        ]
+
+        saver.add_data(data_save_seq)
 
         # Call the function that corresponds to the current mode
         # They all should take in the experiment dataclass and the transfer dict
@@ -165,6 +180,20 @@ def main():
             queue.get_nowait()
 
     # Save the data
+    saver.add_header([
+        "Current Tor",
+        "Current F",
+        "Time",
+        "Experiment Mode",
+        "Mode State",
+        "State Section",
+        "Paused",
+        "Years Since Stroke",
+        "Age",
+        "Dom. Arm",
+        "Paretic Arm",
+        "Gender",
+    ])
     saver.save_data("Testing")
 
 
