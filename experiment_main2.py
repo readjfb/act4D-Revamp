@@ -1,6 +1,4 @@
-from multiprocessing import Process, Pipe, Queue
-from sys import exec_prefix
-from time import time
+from multiprocessing import Process, Queue
 from data_intake2 import data_sender
 from data_processor import data_processor
 from Saver import data_saver
@@ -123,7 +121,6 @@ def main():
     while em_p.is_alive():
         data = None
 
-
         while data_transfer_queue.not_empty:
             data_seq = data_transfer_queue.get_nowait()
             for point in data_seq:
@@ -131,7 +128,6 @@ def main():
 
         if data_buffer:
             data = data_buffer.pop(0)
-
 
         if not data:
             continue
