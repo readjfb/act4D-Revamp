@@ -164,7 +164,7 @@ def main():
         # They all should take in the experiment dataclass and the transfer dict
         MODE_SWITCHER[experiment.experiment_mode](experiment, transfer)
 
-        # This runs slowly, so we can run the emonitor whenever it's convenient
+        # This runs slowly, so we can send update data to the emonitor whenever it's convenient
         if not emonitor_queue.full():
             emonitor_queue.put(transfer)
 
