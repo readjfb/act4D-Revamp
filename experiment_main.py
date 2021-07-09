@@ -186,20 +186,22 @@ def main():
             queue.get_nowait()
 
     # Save the data
-    saver.add_header([
-        "Current Tor",
-        "Current F",
-        "Time",
-        "Experiment Mode",
-        "Mode State",
-        "State Section",
-        "Paused",
-        "Years Since Stroke",
-        "Age",
-        "Dom. Arm",
-        "Paretic Arm",
-        "Gender",
-    ])
+    saver.add_header(
+        [
+            "Current Tor",
+            "Current F",
+            "Time",
+            "Experiment Mode",
+            "Mode State",
+            "State Section",
+            "Paused",
+            "Years Since Stroke",
+            "Age",
+            "Dom. Arm",
+            "Paretic Arm",
+            "Gender",
+        ]
+    )
     saver.save_data(experiment.experiment_mode)
 
 
