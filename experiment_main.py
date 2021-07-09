@@ -1,7 +1,5 @@
-from multiprocessing import Process, Pipe, Queue
-from sys import exec_prefix
-from time import time
-from data_intake import NI_Interface
+from multiprocessing import Process, Queue
+from data_intake import data_sender
 from data_processor import data_processor
 from Saver import data_saver
 from EMonitor import run as emonitor_run
@@ -44,7 +42,7 @@ class MainExperiment:
 
 
 def default_demo(experiment, transfer):
-    if experiment.submode == "SHOULDER ELBOW":
+    if experiment.mode_state == "SHOULDER ELBOW":
         transfer["target_tor"] = experiment.target_tor
         transfer["low_lim_tor"] = experiment.low_lim_tor
         transfer["up_lim_tor"] = experiment.up_lim_tor
@@ -57,7 +55,7 @@ def default_demo(experiment, transfer):
 
         transfer["sound_trigger"] = experiment.sound_trigger
 
-    elif experiment.submode == "SHOULDER":
+    elif experiment.mode_state == "SHOULDER":
         transfer["targetF"] = experiment.targetF
         transfer["low_limF"] = experiment.low_limF
         transfer["up_limF"] = experiment.up_limF
@@ -69,15 +67,28 @@ def default_demo(experiment, transfer):
 
 def main():
     # emonitor section, delegating the subprocess and connection
+    QUEUES = []
+
     emonitor_queue = Queue()
+    QUEUES.append(emonitor_queue)
+
     em_p = Process(
         target=emonitor_run,
         args=(1 / 60, emonitor_queue),
     )
     em_p.start()
 
-    # Initialize NI-DAQ
-    ni = NI_Interface()
+    # Initialize data collection
+    HZ = 1000
+
+    data_intake_queue = Queue()
+    data_intake_comm_queue = Queue()
+    QUEUES.append(data_intake_queue)
+    QUEUES.append(data_intake_comm_queue)
+    data_intake_p = Process(
+        target=data_sender, args=(1 / HZ, data_intake_queue, data_intake_comm_queue)
+    )
+    data_intake_p.start()
 
     # Initialize the saver object; We'll change the stuff that gets passed in,
     # and might change it later on
@@ -86,7 +97,8 @@ def main():
     # Initialize the experiment dataclass
     experiment = MainExperiment()
 
-    experiment.mode_state = "SHOULDER"
+    experiment.experiment_mode = "DEFAULT"
+    experiment.mode_state = "SHOULDER ELBOW"
 
     TRANSMIT_KEYS = [
         "target_tor",
@@ -104,12 +116,21 @@ def main():
     MODE_SWITCHER = {"DEFAULT": default_demo}
 
     # If any of the windows are closed, quit for now; this is something to change later
+
+    data_buffer = []
+
     while em_p.is_alive():
-        data = ni.read_samples()
+        data = None
+
+        while not data_intake_queue.empty():
+            data_seq = data_intake_queue.get()
+            for point in data_seq:
+                data_buffer.append(point)
+
+        if data_buffer:
+            data = data_buffer.pop(0)
 
         if not data:
-            # If there's no samples available, just loop again
-            # If something must be done at the full framerate, put it before this
             continue
 
         # Intializes the dict of outputs with zeros
@@ -120,20 +141,34 @@ def main():
         transfer["sound_trigger"] = [False] * 13
         transfer["stop_trigger"] = False
 
-        for i in range(len(data[0])):
-            # Transpose the matrix from 3xn to nx3
-            datapoint = [C[i] for C in data]
-            # For all of the other stuff that we want saved, add to this call
-            saver.add_data(datapoint)
+        experiment.match_tor, experiment.matchF, experiment.timestep = data
 
-            experiment.match_tor, experiment.matchF, experiment.timestep = datapoint
+        # For all of the other stuff that we want saved, add to this call
+        data_save_seq = [
+            experiment.match_tor,
+            experiment.matchF,
+            experiment.timestep,
+            experiment.experiment_mode,
+            experiment.mode_state,
+            experiment.state_section,
+            experiment.paused,
+            experiment.particiapnt_years_since_stroke,
+            experiment.participant_age,
+            experiment.participant_dominant_arm,
+            experiment.participant_paretic_arm,
+            experiment.partipant_gender,
+        ]
+        # data_save_seq = [
+        #     experiment.match_tor,
+        #     experiment.matchF,
+        #     experiment.timestep
+        # ]
 
-            # Call the function that corresponds to the current mode
-            # They all should take in the experiment dataclass and the transfer dict
-            MODE_SWITCHER[experiment.experiment_mode](experiment, transfer)
+        saver.add_data(data_save_seq)
 
-            # Things that must be run with every datapoint (such as motors)
-            # would be called here
+        # Call the function that corresponds to the current mode
+        # They all should take in the experiment dataclass and the transfer dict
+        MODE_SWITCHER[experiment.experiment_mode](experiment, transfer)
 
         # This runs slowly, so we can run the emonitor whenever it's convenient
         if not emonitor_queue.full():
@@ -141,15 +176,31 @@ def main():
 
     # Exit all processes
 
-    # Clear the queue
-    while not emonitor_queue.empty():
-        emonitor_queue.get_nowait()
+    # Exit the DAQ
+    data_intake_comm_queue.put("EXIT")
+    data_intake_p.join()
+
+    # Clear the queues
+    for queue in QUEUES:
+        while not queue.empty():
+            queue.get_nowait()
 
     # Save the data
-    saver.save_data("Testing")
-
-    # Exit the DAQ
-    ni.safe_exit()
+    saver.add_header([
+        "Current Tor",
+        "Current F",
+        "Time",
+        "Experiment Mode",
+        "Mode State",
+        "State Section",
+        "Paused",
+        "Years Since Stroke",
+        "Age",
+        "Dom. Arm",
+        "Paretic Arm",
+        "Gender",
+    ])
+    saver.save_data(experiment.experiment_mode)
 
 
 if __name__ == "__main__":

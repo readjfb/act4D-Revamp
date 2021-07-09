@@ -238,30 +238,35 @@ def run(interval, conn):
             # Define the radii of the circles
             m = emonitor
 
-
-            match_target_radius = int(HEIGHT / 1.5)
-            if m.target_tor == 0:
-                match_target_radius = 0
-                m.target_tor = 1
-
+            match_target_radius = 0
+            lower_range_radius = 0
+            upper_range_radius = 0
+            match_target_radius = 0
+            representation_radius = 0
             
-            lower_range_radius = int(match_target_radius * (m.low_lim_tor / m.target_tor))
-            upper_range_radius = int(match_target_radius * (m.up_lim_tor / m.target_tor))
-            representation_radius = int(match_target_radius * (m.match_tor / m.target_tor))
+            if m.target_tor != 0:
+                match_target_radius = int(HEIGHT / 1.5)
+                lower_range_radius = int(match_target_radius * (m.low_lim_tor / m.target_tor))
+                upper_range_radius = int(match_target_radius * (m.up_lim_tor / m.target_tor))
+                representation_radius = int(match_target_radius * (m.match_tor / m.target_tor))
 
             # Code to set the moving Y coordinates
-            targetF_line = center_y
-            if m.targetF == 0:
-                targetF_line = 0
-                m.targetF = 1
+            targetF_line = 0
+            lowF_line = 0
+            upF_line = 0
+            matchY = 0
 
-            lowF_line = targetF_line * (m.low_limF / m.targetF)
-            upF_line = targetF_line * (m.up_limF / m.targetF)
+            
+            if m.targetF != 0:
+                targetF_line = center_y
 
-            # The C# Code has matchY = center_y * ((2 - m.matchF) / m.targetF)
-            # i'm not sure why the 2.0 - is present though, so I deleted it
-            # This might have to be reintroduced sometime
-            matchY = center_y * ((m.matchF) / m.targetF)
+                lowF_line = targetF_line * (m.low_limF / m.targetF)
+                upF_line = targetF_line * (m.up_limF / m.targetF)
+
+                # The C# Code has matchY = center_y * ((2 - m.matchF) / m.targetF)
+                # i'm not sure why the 2.0 - is present though, so I deleted it
+                # This might have to be reintroduced sometime
+                matchY = center_y * ((m.matchF) / m.targetF)
 
             window.clear()
 
