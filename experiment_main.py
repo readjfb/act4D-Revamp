@@ -5,15 +5,18 @@ from Saver import data_saver
 from EMonitor import run as emonitor_run
 from dataclasses import dataclass, field
 from typing import List
+from collections import deque
 
 
 @dataclass
 class MainExperiment:
+    # Experimental state and control
     experiment_mode: str = "DEFAULT"
     mode_state: str = "SHOULDER ELBOW"
     state_section: str = "AUTO"
     paused: bool = False
 
+    # Experimental variables for controling the output
     target_tor: float = 0.6
     low_lim_tor: float = 0.5
     up_lim_tor: float = 0.7
@@ -26,8 +29,9 @@ class MainExperiment:
 
     timestep: float = 0
 
+    # Info about the participants 
     participant_age: float = 0
-    partipant_gender: str = "DEFAULT"
+    partipant_gender: str = "UNSPECIFIED"
     particiapnt_years_since_stroke: int = 0
     participant_dominant_arm: str = "RIGHT"
     participant_paretic_arm: str = "NONE"
@@ -100,12 +104,12 @@ def main():
 
     # Initialize the saver object; We'll change the stuff that gets passed in,
     # and might change it later on
-    saver = data_saver("test_test", "Testing")
+    saver = data_saver("subject0")
 
     # Initialize the experiment dataclass
     experiment = MainExperiment()
 
-    experiment.experiment_mode = "DEFAULT"
+    experiment.experiment_mode = "DEMO"
     experiment.mode_state = "SHOULDER ELBOW"
 
     TRANSMIT_KEYS = [
@@ -121,11 +125,11 @@ def main():
         "stop_trigger",
     ]
 
-    MODE_SWITCHER = {"DEFAULT": default_demo}
+    MODE_SWITCHER = {"DEMO": default_demo}
 
-    # If any of the windows are closed, quit for now; this is something to change later
+    # If any of the windows are closed, quit for now; this is something that could be changed 
 
-    data_buffer = []
+    data_buffer = deque()
 
     while em_p.is_alive():
         data = None
@@ -136,12 +140,16 @@ def main():
                 data_buffer.append(point)
 
         if data_buffer:
-            data = data_buffer.pop(0)
+            data = data_buffer.popleft()
 
         if not data:
             continue
 
         # Get the data from the remote controls
+        # while not control_intake_queue.empty():
+        #     control = control_intake_queue.get()
+
+        #     # do the parsing of the queue here
 
         # Intializes the dict of outputs with zeros
         # Care should be taken S.T. dict is initialized with valid, legal

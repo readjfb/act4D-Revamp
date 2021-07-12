@@ -63,6 +63,10 @@ class NI_Interface:
 def data_sender(
     sample_delay, send_queue: Queue = None, communication_queue: Queue = None
 ):
+    """
+        Runs in a separate process and constantly fills the send_queue with
+        datapoints
+    """
     ni_interface = NI_Interface()
 
     running = True

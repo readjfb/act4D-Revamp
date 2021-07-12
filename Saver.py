@@ -6,7 +6,7 @@ class data_saver(object):
     data_saver encapsulates a cache of data to be saved as well as the underlying code to save the data
     """
 
-    def __init__(self, save_directory, state):
+    def __init__(self, save_directory):
         """
         Construct a new 'data_saver' object.
 
@@ -15,9 +15,7 @@ class data_saver(object):
         """
         self.data_cache = []
         self.save_dir = os.getcwd() + "/data/" + save_directory
-
-        self.state = state
-
+        
         self.header = None
 
     def add_data(self, line):
