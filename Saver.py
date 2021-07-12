@@ -72,7 +72,7 @@ class data_saver(object):
 
         with open(f"{path}{mode}_data{i}.csv", "w") as file:
             if self.header:
-                file.write(','.join([str(x) for x in self.header]) + "\n")
+                file.write(",".join([str(x) for x in self.header]) + "\n")
 
             for line in self.data_cache:
                 file.write(",".join([str(x) for x in line]) + "\n")

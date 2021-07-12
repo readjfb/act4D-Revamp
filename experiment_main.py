@@ -90,6 +90,14 @@ def main():
     )
     data_intake_p.start()
 
+    # Initialize Remote control
+    # control_intake_queue = Queue()
+    # control_output_queue = Queue()
+    # QUEUES.append(control_intake_queue)
+    # QUEUES.append(control_output_queue)
+    # control_p = Process(target=)
+    # control_p.start()
+
     # Initialize the saver object; We'll change the stuff that gets passed in,
     # and might change it later on
     saver = data_saver("test_test", "Testing")
@@ -132,6 +140,8 @@ def main():
 
         if not data:
             continue
+
+        # Get the data from the remote controls
 
         # Intializes the dict of outputs with zeros
         # Care should be taken S.T. dict is initialized with valid, legal
