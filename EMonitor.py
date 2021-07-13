@@ -243,7 +243,7 @@ def run(interval, conn):
             upper_range_radius = 0
             match_target_radius = 0
             representation_radius = 0
-            
+
             if m.target_tor != 0:
                 match_target_radius = int(HEIGHT / 1.5)
                 lower_range_radius = int(match_target_radius * (m.low_lim_tor / m.target_tor))
@@ -256,7 +256,7 @@ def run(interval, conn):
             upF_line = 0
             matchY = 0
 
-            
+
             if m.targetF != 0:
                 targetF_line = center_y
 
