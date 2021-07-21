@@ -7,7 +7,6 @@ class GUI:
         self.master.title("Torque GUI")
         self.notebk = ttk.Notebook(self.master)
 
-        
         self.frame1 = ttk.Frame(self.notebk, width = 400, height = 400, relief = tk.SUNKEN)
         self.frame2 = ttk.Frame(self.notebk, width = 400, height = 400, relief = tk.SUNKEN)
         self.frame3 = ttk.Frame(self.notebk, width = 400, height = 400, relief = tk.SUNKEN)
@@ -86,55 +85,7 @@ class GUI:
 
         self.subjectInfo = ['Age', 'Subject Type', 'Years since stroke','rNSA', 'FMA',
                             'Dominant Arm', 'Recovery Paretic Arm', 'Gender']
-        '''
-        self.age = tk.Label(self.frame2, text=self.subjectInfo[0])
-        self.age.grid(row=0,column=0, padx=5, pady=5)
-        self.ageEnt = tk.Entry(self.frame2)
-        self.ageEnt.grid(row=0, column=1, padx=5, pady=5)
-
-        self.gen = tk.Label(self.frame2, text=self.subjectInfo[7])
-        self.gen.grid(row=1,column=0, padx=5, pady=5)
-        self.genDef = tk.StringVar(self.master)
-        self.genDef.set('Select a gender')
-        self.genders = ["Male", "Female", "Other"]
-        self.genEnt = tk.OptionMenu(self.frame2, self.genDef, *self.genders)
-        self.genEnt.grid(row=1, column=1, padx=5, pady=5)
-
-        self.subType = tk.Label(self.frame2, text=self.subjectInfo[1])
-        self.subType.grid(row=2,column=0, padx=5, pady=5)
-        self.subTypeEnt = tk.Entry(self.frame2)
-        self.subTypeEnt.grid(row=2, column=1, padx=5, pady=5)
-
-        self.years = tk.Label(self.frame2, text=self.subjectInfo[2])
-        self.years.grid(row=3,column=0, padx=5, pady=5)
-        self.yearsEnt = tk.Entry(self.frame2)
-        self.yearsEnt.grid(row=3, column=1, padx=5, pady=5)
-
-        self.rnsa = tk.Label(self.frame2, text=self.subjectInfo[3])
-        self.rnsa.grid(row=4,column=0, padx=5, pady=5)
-        self.rnsaEnt = tk.Entry(self.frame2)
-        self.rnsaEnt.grid(row=4, column=1, padx=5, pady=5)
-
-        self.fma = tk.Label(self.frame2, text=self.subjectInfo[4])
-        self.fma.grid(row=5,column=0, padx=5, pady=5)
-        self.fmaEnt = tk.Entry(self.frame2)
-        self.fmaEnt.grid(row=5, column=1, padx=5, pady=5)
-
-        self.domArm = tk.Label(self.frame2, text=self.subjectInfo[5])
-        self.domArm.grid(row=6,column=0, padx=5, pady=5)
-        self.domArmDef = tk.StringVar(self.master)
-        self.domArmDef.set("Left/Right")
-        self.domArmEnt = tk.OptionMenu(self.frame2, self.domArmDef, *self.ArmTypes)
-        self.domArmEnt.grid(row=6, column=1, padx=5, pady=5)
-
-        self.recArm = tk.Label(self.frame2, text=self.subjectInfo[6])
-        self.recArm.grid(row=7,column=0, padx=5, pady=5)
-        self.recArmDef = tk.StringVar(self.master)
-        self.recArmDef.set("Left/Right")
-        self.recArmEnt = tk.OptionMenu(self.frame2, self.recArmDef, *self.ArmTypes)
-        self.recArmEnt.grid(row=7, column=1, padx=5, pady=5)
-        '''
-        
+                
         self.subjectSub = ttk.Button(self.frame2, text="Submit", command=self.subjectSubmit)
         self.subjectSub.grid(row=len(self.subjectInfo),column=0, padx=5, pady=5)
 
@@ -146,28 +97,6 @@ class GUI:
             tk.Label(self.frame3, text=self.jacobInfo[i]).grid(row=i, column=0, padx=5, pady=5)
             tk.Entry(self.frame3).grid(row=i, column=1)
         
-        '''
-        self.shoulder = tk.Label(self.frame3, text=self.jacobInfo[0])
-        self.shoulder.grid(row=0,column=0, padx=5, pady=5)
-        self.shoulderEnt = tk.Entry(self.frame3)
-        self.shoulderEnt.grid(row=0, column=1, padx=5, pady=5)
-
-        self.elbow = tk.Label(self.frame3, text=self.jacobInfo[1])
-        self.elbow.grid(row=1,column=0, padx=5, pady=5)
-        self.elbowEnt = tk.Entry(self.frame3)
-        self.elbowEnt.grid(row=1, column=1, padx=5, pady=5)
-
-        self.armLength = tk.Label(self.frame3, text=self.jacobInfo[2])
-        self.armLength.grid(row=2,column=0, padx=5, pady=5)
-        self.armLengthEnt = tk.Entry(self.frame3)
-        self.armLengthEnt.grid(row=2, column=1, padx=5, pady=5)
-
-        self.zoff = tk.Label(self.frame3, text=self.jacobInfo[3])
-        self.zoff.grid(row=3,column=0, padx=5, pady=5)
-        self.zoffEnt = tk.Entry(self.frame3)
-        self.zoffEnt.grid(row=3, column=1, padx=5, pady=5)
-        '''
-
         self.jacobSub = ttk.Button(self.frame3, text="Submit", command=self.jacobSubmit)
         self.jacobSub.grid(row=len(self.jacobInfo),column=0, padx=5, pady=5)
 
@@ -178,43 +107,6 @@ class GUI:
         for i in range(len(self.maxInfo)):
             tk.Label(self.frame4, text=self.maxInfo[i]).grid(row=i, column=0, padx=5, pady=5)
             tk.Entry(self.frame4).grid(row=i, column=1)
-            
-        '''
-        self.maxShoulder = tk.Label(self.frame4, text=self.maxInfo[0])
-        self.maxShoulder.grid(row=0,column=0, padx=5, pady=5)
-        self.maxShoulderEnt = tk.Entry(self.frame4)
-        self.maxShoulderEnt.grid(row=0, column=1, padx=5, pady=5)
-
-        self.maxInvElbow = tk.Label(self.frame4, text=self.maxInfo[1])
-        self.maxInvElbow.grid(row=1,column=0, padx=5, pady=5)
-        self.maxInvElbowEnt = tk.Entry(self.frame4)
-        self.maxInvElbowEnt.grid(row=1, column=1, padx=5, pady=5)
-
-        self.maxElbowFlex = tk.Label(self.frame4, text=self.maxInfo[2])
-        self.maxElbowFlex.grid(row=2,column=0, padx=5, pady=5)
-        self.maxElbowFlexEnt = tk.Entry(self.frame4)
-        self.maxElbowFlexEnt.grid(row=2, column=1, padx=5, pady=5)
-
-        self.synTflex = tk.Label(self.frame4, text=self.maxInfo[3])
-        self.synTflex.grid(row=3,column=0, padx=5, pady=5)
-        self.synTflexEnt = tk.Entry(self.frame4)
-        self.synTflexEnt.grid(row=3, column=1, padx=5, pady=5)
-
-        self.maxInvExt = tk.Label(self.frame4, text=self.maxInfo[4])
-        self.maxInvExt.grid(row=4,column=0, padx=5, pady=5)
-        self.maxInvExtEnt = tk.Entry(self.frame4)
-        self.maxInvExtEnt.grid(row=4, column=1, padx=5, pady=5)
-
-        self.maxElbowExt = tk.Label(self.frame4, text=self.maxInfo[5])
-        self.maxElbowExt.grid(row=5,column=0, padx=5, pady=5)
-        self.maxElbowExtEnt = tk.Entry(self.frame4)
-        self.maxElbowExtEnt.grid(row=5, column=1, padx=5, pady=5)
-
-        self.synText = tk.Label(self.frame4, text=self.maxInfo[6])
-        self.synText.grid(row=6,column=0, padx=5, pady=5)
-        self.synTextEnt = tk.Entry(self.frame4)
-        self.synTextEnt.grid(row=6, column=1, padx=5, pady=5)
-        '''
 
         self.maxSub = ttk.Button(self.frame4, text="Submit", command=self.maxSubmit)
         self.maxSub.grid(row=len(self.maxInfo),column=0, padx=5, pady=5)
