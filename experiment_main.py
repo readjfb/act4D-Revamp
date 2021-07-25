@@ -92,6 +92,8 @@ def main():
     )
     em_p.start()
 
+    #print(gui_queue.get())
+
     # Initialize data collection
     HZ = 1000
 
@@ -154,7 +156,6 @@ def main():
 
         if not data:
             continue
-
         # Get the data from the remote controls
         # while not control_intake_queue.empty():
         #     control = control_intake_queue.get()
@@ -165,6 +166,7 @@ def main():
         # Care should be taken S.T. dict is initialized with valid, legal
         # arguements
         transfer = dict.fromkeys(TRANSMIT_KEYS, 0)
+
 
         transfer["sound_trigger"] = [False] * 13
         transfer["stop_trigger"] = False

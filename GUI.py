@@ -3,7 +3,10 @@ from multiprocessing.connection import Client
 from tkinter import ttk
 
 class GUI:
-    def __init__(self, master):
+    def __init__(self, master, conn):
+        # queue for multiprocessing
+        self.data_queue = conn
+
         self.master = master
         self.master.title("Torque GUI")
         self.notebk = ttk.Notebook(self.master)
@@ -137,9 +140,6 @@ class GUI:
         self.pause = ttk.Button(self.frame5, text="Pause")
         self.pause.grid(row=3, column=0, padx=5, pady=5)
 
-        # queue for multiprocessing
-        self.data_queue = None
-
 
     # Helper functions
     def close(self):
@@ -161,7 +161,8 @@ class GUI:
         self.subjectSaved.append(self.genDef.get())
         
         self.subjectFinal = dict(zip(self.subjectInfo,self.subjectSaved))
-        print(self.subjectFinal)
+        self.data_queue.put(self.subjectFinal)
+        #print(self.subjectFinal)
 
     def jacobSubmit(self):
         self.jacobSaved = []
@@ -184,8 +185,8 @@ class GUI:
 def launchGUI(conn):
     # run the GUI
     root = tk.Tk()
-    gui = GUI(root)
-    gui.data_queue = conn
+    gui = GUI(root, conn)
+    #gui.data_queue.put([42, None, 'hello'])
     tk.mainloop()
     exit()
     
