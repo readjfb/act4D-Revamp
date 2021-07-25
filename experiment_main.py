@@ -3,6 +3,7 @@ from data_intake import data_sender
 from data_processor import data_processor
 from Saver import data_saver
 from EMonitor import run as emonitor_run
+from GUI import launchGUI as gui_run
 from dataclasses import dataclass, field
 from typing import List
 from collections import deque
@@ -74,11 +75,20 @@ def main():
     QUEUES = []
 
     emonitor_queue = Queue()
+    gui_queue = Queue()
     QUEUES.append(emonitor_queue)
+    QUEUES.append(gui_queue)
+
+    # processes for GUI and monitor
+    gui_p = Process(
+        target=gui_run,
+        args=(gui_queue,)
+    )
+    gui_p.start()
 
     em_p = Process(
         target=emonitor_run,
-        args=(1 / 60, emonitor_queue),
+        args=(1 / 60, emonitor_queue)
     )
     em_p.start()
 

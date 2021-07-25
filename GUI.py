@@ -1,4 +1,5 @@
 import tkinter as tk
+from multiprocessing.connection import Client
 from tkinter import ttk
 
 class GUI:
@@ -7,6 +8,7 @@ class GUI:
         self.master.title("Torque GUI")
         self.notebk = ttk.Notebook(self.master)
 
+        # Tabs for each section
         self.frame1 = ttk.Frame(self.notebk, width = 400, height = 400, relief = tk.SUNKEN)
         self.frame2 = ttk.Frame(self.notebk, width = 400, height = 400, relief = tk.SUNKEN)
         self.frame3 = ttk.Frame(self.notebk, width = 400, height = 400, relief = tk.SUNKEN)
@@ -135,6 +137,9 @@ class GUI:
         self.pause = ttk.Button(self.frame5, text="Pause")
         self.pause.grid(row=3, column=0, padx=5, pady=5)
 
+        # queue for multiprocessing
+        self.data_queue = None
+
 
     # Helper functions
     def close(self):
@@ -176,12 +181,14 @@ class GUI:
         self.maxFinal = dict(zip(self.maxInfo,self.maxSaved))
         print(self.maxFinal)
 
-def launchGUI():
+def launchGUI(conn):
+    # run the GUI
     root = tk.Tk()
-    GUI(root)
+    gui = GUI(root)
+    gui.data_queue = conn
     tk.mainloop()
     exit()
     
 
 if __name__=='__main__':
-    launchGUI()
+    pass
