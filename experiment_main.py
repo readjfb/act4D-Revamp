@@ -37,6 +37,10 @@ class MainExperiment:
     participant_dominant_arm: str = "RIGHT"
     participant_paretic_arm: str = "NONE"
 
+    rNSA: int = 0
+    FMA: int = 0
+    subject_type: str = "UNSPECIFIED"
+
     sound_trigger: List[bool] = field(default_factory=list)
 
     stop_trigger: bool = False
@@ -155,10 +159,23 @@ def main():
 
         # Get the data from the remote controls
         while not gui_queue.empty():
-            control = gui_queue.get()
-            print(control)
+            header, data = gui_queue.get()
 
-        #     # do the parsing of the queue here
+            if header == "Subject info":
+                experiment.participant_age = data["Age"]
+                experiment.particiapnt_years_since_stroke = data["Years since stroke"]
+                experiment.participant_dominant_arm = data["Dominant Arm"]
+                experiment.participant_paretic_arm = data["Recovery Paretic Arm"]
+                experiment.partipant_gender = data["Gender"]
+
+                experiment.rNSA = data["rNSA"]
+                experiment.FMA = data["FMA"]
+                experiment.subject_type = data["Subject Type"]
+
+
+            print(header, "|||", data)
+
+        # do the parsing of the queue here
 
         # Intializes the dict of outputs with zeros
         # Care should be taken S.T. dict is initialized with valid, legal
@@ -186,11 +203,6 @@ def main():
             experiment.participant_paretic_arm,
             experiment.partipant_gender,
         ]
-        # data_save_seq = [
-        #     experiment.match_tor,
-        #     experiment.matchF,
-        #     experiment.timestep
-        # ]
 
         saver.add_data(data_save_seq)
 
