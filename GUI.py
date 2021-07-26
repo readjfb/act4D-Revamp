@@ -4,9 +4,10 @@ from tkinter import ttk
 from tkinter import messagebox
 
 class GUI:
-    def __init__(self, master, conn):
+    def __init__(self, master, conn, in_conn):
         # queue for multiprocessing
         self.data_queue = conn
+        self.in_queue = in_conn
 
         self.master = master
         self.master.title("Torque GUI")
@@ -145,6 +146,9 @@ class GUI:
     # Helper functions
     def close(self):
         self.master.destroy()
+
+    def transmit(self, header, information):
+        self.data_queue.put((header, information))
     
     def toggle(self):
         if self.trialTog['text'] == 'Practice':
@@ -189,9 +193,7 @@ class GUI:
             for child in self.frame3.winfo_children():
                 if child.winfo_class() == 'Entry':
                     jacobSaved.append(child.get())
-        
-            self.jacobFinal = dict(zip(self.jacobInfo, jacobSaved))
-            print(self.jacobFinal)
+        self.transmit("Jacobean Constants", self.jacobFinal)
 
     def maxSubmit(self):
         maxSaved = []
@@ -201,14 +203,13 @@ class GUI:
             for child in self.frame4.winfo_children():
                 if child.winfo_class() == 'Entry':
                     maxSaved.append(child.get())
-        
-            self.maxFinal = dict(zip(self.maxInfo, maxSaved))
-            print(self.maxFinal)
+        self.maxFinal = dict(zip(self.maxInfo,self.maxSaved))
+        self.transmit("Maxes", self.maxFinal)
 
-def launchGUI(conn):
+def launchGUI(conn, in_conn):
     # run the GUI
     root = tk.Tk()
-    gui = GUI(root, conn)
+    gui = GUI(root, conn, in_conn)
     #gui.data_queue.put([42, None, 'hello'])
     tk.mainloop()
     exit()
