@@ -88,11 +88,13 @@ def main():
     # Process and queues for the GUI
 
     gui_queue = Queue()
+    gui_out_queue = Queue()
     QUEUES.append(gui_queue)
+    QUEUES.append(gui_out_queue)
 
     gui_p = Process(
         target=gui_run,
-        args=(gui_queue,)
+        args=(gui_queue,gui_out_queue)
     )
     gui_p.start()
 
@@ -154,8 +156,9 @@ def main():
             continue
 
         # Get the data from the remote controls
-        while not control_intake_queue.empty():
-            control = control_intake_queue.get()
+        while not gui_queue.empty():
+            control = gui_queue.get()
+            print("Control")
 
         #     # do the parsing of the queue here
 

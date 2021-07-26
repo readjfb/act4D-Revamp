@@ -3,9 +3,10 @@ from multiprocessing.connection import Client
 from tkinter import ttk
 
 class GUI:
-    def __init__(self, master, conn):
+    def __init__(self, master, conn, in_conn):
         # queue for multiprocessing
         self.data_queue = conn
+        self.in_queue = in_conn
 
         self.master = master
         self.master.title("Torque GUI")
@@ -182,10 +183,10 @@ class GUI:
         self.maxFinal = dict(zip(self.maxInfo,self.maxSaved))
         print(self.maxFinal)
 
-def launchGUI(conn):
+def launchGUI(conn, in_conn):
     # run the GUI
     root = tk.Tk()
-    gui = GUI(root, conn)
+    gui = GUI(root, conn, in_conn)
     #gui.data_queue.put([42, None, 'hello'])
     tk.mainloop()
     exit()
