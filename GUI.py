@@ -145,6 +145,9 @@ class GUI:
     # Helper functions
     def close(self):
         self.master.destroy()
+
+    def transmit(self, header, information):
+        self.data_queue.put((header, information))
     
     def toggle(self):
         if self.trialTog['text'] == 'Practice':
@@ -160,9 +163,10 @@ class GUI:
         self.subjectSaved.append(self.domArmDef.get())
         self.subjectSaved.append(self.recArmDef.get())
         self.subjectSaved.append(self.genDef.get())
-        
+
         self.subjectFinal = dict(zip(self.subjectInfo,self.subjectSaved))
-        self.data_queue.put(self.subjectFinal)
+
+        self.transmit("Subject Info", self.subjectFinal)
         #print(self.subjectFinal)
 
     def jacobSubmit(self):
@@ -172,7 +176,7 @@ class GUI:
                 self.jacobSaved.append(child.get())
         
         self.jacobFinal = dict(zip(self.jacobInfo,self.jacobSaved))
-        print(self.jacobFinal)
+        self.transmit("Jacobean Constants", self.jacobFinal)
 
     def maxSubmit(self):
         self.maxSaved = []
@@ -181,7 +185,7 @@ class GUI:
                 self.maxSaved.append(child.get())
         
         self.maxFinal = dict(zip(self.maxInfo,self.maxSaved))
-        print(self.maxFinal)
+        self.transmit("Maxes", self.maxFinal)
 
 def launchGUI(conn, in_conn):
     # run the GUI

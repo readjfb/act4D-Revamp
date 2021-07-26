@@ -90,8 +90,8 @@ def run(interval, conn):
     print(f"{SCREEN_INDEX = }")
 
     # Create objects for the pyglet window and fps display
-    # window = pyglet.window.Window(fullscreen=False, screen=screens[SCREEN_INDEX])
-    window = pyglet.window.Window(fullscreen=True, screen=screens[SCREEN_INDEX])
+    window = pyglet.window.Window(fullscreen=False, screen=screens[SCREEN_INDEX])
+    # window = pyglet.window.Window(fullscreen=True, screen=screens[SCREEN_INDEX])
     fps_display = pyglet.window.FPSDisplay(window=window)
 
     # set background color as white

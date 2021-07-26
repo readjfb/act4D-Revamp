@@ -158,7 +158,7 @@ def main():
         # Get the data from the remote controls
         while not gui_queue.empty():
             control = gui_queue.get()
-            print("Control")
+            print(control)
 
         #     # do the parsing of the queue here
 
