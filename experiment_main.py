@@ -30,7 +30,7 @@ class MainExperiment:
 
     timestep: float = 0
 
-    # Info about the participants 
+    # Info about the participants
     participant_age: float = 0
     partipant_gender: str = "UNSPECIFIED"
     particiapnt_years_since_stroke: int = 0
@@ -74,25 +74,28 @@ def main():
     # emonitor section, delegating the subprocess and connection
     QUEUES = []
 
+    # process for monitor and monitor queue
+
     emonitor_queue = Queue()
-    gui_queue = Queue()
+
     QUEUES.append(emonitor_queue)
-    QUEUES.append(gui_queue)
-
-    # processes for GUI and monitor
-    gui_p = Process(
-        target=gui_run,
-        args=(gui_queue,)
-    )
-    gui_p.start()
-
     em_p = Process(
         target=emonitor_run,
         args=(1 / 60, emonitor_queue)
     )
     em_p.start()
 
-    #print(gui_queue.get())
+    # Process and queues for the GUI
+
+    gui_queue = Queue()
+    QUEUES.append(gui_queue)
+
+    gui_p = Process(
+        target=gui_run,
+        args=(gui_queue,)
+    )
+    gui_p.start()
+
 
     # Initialize data collection
     HZ = 1000
@@ -106,13 +109,6 @@ def main():
     )
     data_intake_p.start()
 
-    # Initialize Remote control
-    # control_intake_queue = Queue()
-    # control_output_queue = Queue()
-    # QUEUES.append(control_intake_queue)
-    # QUEUES.append(control_output_queue)
-    # control_p = Process(target=)
-    # control_p.start()
 
     # Initialize the saver object; We'll change the stuff that gets passed in,
     # and might change it later on
@@ -139,7 +135,7 @@ def main():
 
     MODE_SWITCHER = {"DEMO": default_demo}
 
-    # If any of the windows are closed, quit for now; this is something that could be changed 
+    # If any of the windows are closed, quit for now; this is something that could be changed
 
     data_buffer = deque()
 
@@ -156,9 +152,10 @@ def main():
 
         if not data:
             continue
+
         # Get the data from the remote controls
-        # while not control_intake_queue.empty():
-        #     control = control_intake_queue.get()
+        while not control_intake_queue.empty():
+            control = control_intake_queue.get()
 
         #     # do the parsing of the queue here
 
