@@ -71,10 +71,10 @@ def default_demo(experiment, transfer):
 
 
 def main():
-    # emonitor section, delegating the subprocess and connection
+    # Emonitor section, delegating the subprocess and connection
     QUEUES = []
 
-    # process for monitor and monitor queue
+    # Process for monitor and monitor queue
 
     emonitor_queue = Queue()
 
@@ -98,7 +98,6 @@ def main():
     )
     gui_p.start()
 
-
     # Initialize data collection
     HZ = 1000
 
@@ -110,7 +109,6 @@ def main():
         target=data_sender, args=(1 / HZ, data_intake_queue, data_intake_comm_queue)
     )
     data_intake_p.start()
-
 
     # Initialize the saver object; We'll change the stuff that gets passed in,
     # and might change it later on
