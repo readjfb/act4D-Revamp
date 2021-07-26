@@ -90,14 +90,14 @@ def run(interval, conn):
     print(f"{SCREEN_INDEX = }")
 
     # Create objects for the pyglet window and fps display
-    window = pyglet.window.Window(fullscreen=True, screen=screens[SCREEN_INDEX])
+    window = pyglet.window.Window(fullscreen=False, screen=screens[SCREEN_INDEX])
     fps_display = pyglet.window.FPSDisplay(window=window)
 
     # set background color as white
     pyglet.gl.glClearColor(*WHITE, 255)
 
     # Load the sounds
-    SOUND_DIRECTORY = "C:\\Users\\pthms\\Desktop\\Local UDP Revamp\\soundCues\\"
+    '''SOUND_DIRECTORY = "C:\\Users\\pthms\\Desktop\\Local UDP Revamp\\soundCues\\"
     # SOUND_DIRECTORY = os.getcwd() + "\\soundCues\\"
     FILE_NAMES = [
         "hold.wav",
@@ -122,7 +122,7 @@ def run(interval, conn):
         # print(f"Loading {n}")
 
         SOUND_CUES.append(pyglet.media.load(n, streaming=False))
-    print(f"Loaded {len(SOUND_CUES)} sounds successfully")
+    print(f"Loaded {len(SOUND_CUES)} sounds successfully")'''
 
     # Initialize the EMonitor
     emonitor = EMonitor()

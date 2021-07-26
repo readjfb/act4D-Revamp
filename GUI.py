@@ -1,6 +1,7 @@
 import tkinter as tk
 from multiprocessing.connection import Client
 from tkinter import ttk
+from tkinter import messagebox
 
 class GUI:
     def __init__(self, master, conn):
@@ -168,7 +169,7 @@ class GUI:
         subStringVars = [self.domArmDef, self.recArmDef, self.genDef]
 
         if self.checkFields(self.frame2, subStringVars):
-            print('NO')
+            self.error = tk.messagebox.showerror(title='Oh no', message="All fields should be filled")
         else:
             for child in self.frame2.winfo_children():
                 if child.winfo_class() == 'Entry':
@@ -177,26 +178,32 @@ class GUI:
                 subjectSaved.append(i.get())
 
             self.subjectFinal = dict(zip(self.subjectInfo, self.subjectSaved))
-            #print(self.subjectFinal)
-        #self.data_queue.put(self.subjectFinal)
+            print(self.subjectFinal)
+            #self.data_queue.put(self.subjectFinal)
 
     def jacobSubmit(self):
         jacobSaved = []
-        for child in self.frame3.winfo_children():
-            if child.winfo_class() == 'Entry':
-                jacobSaved.append(child.get())
+        if self.checkFields(self.frame3, False):
+            print("NO")
+        else:
+            for child in self.frame3.winfo_children():
+                if child.winfo_class() == 'Entry':
+                    jacobSaved.append(child.get())
         
-        self.jacobFinal = dict(zip(self.jacobInfo, jacobSaved))
-        print(self.jacobFinal)
+            self.jacobFinal = dict(zip(self.jacobInfo, jacobSaved))
+            print(self.jacobFinal)
 
     def maxSubmit(self):
         maxSaved = []
-        for child in self.frame4.winfo_children():
-            if child.winfo_class() == 'Entry':
-                maxSaved.append(child.get())
+        if self.checkFields(self.frame4, False):
+            print("NO")
+        else:
+            for child in self.frame4.winfo_children():
+                if child.winfo_class() == 'Entry':
+                    maxSaved.append(child.get())
         
-        self.maxFinal = dict(zip(self.maxInfo, maxSaved))
-        print(self.maxFinal)
+            self.maxFinal = dict(zip(self.maxInfo, maxSaved))
+            print(self.maxFinal)
 
 def launchGUI(conn):
     # run the GUI
