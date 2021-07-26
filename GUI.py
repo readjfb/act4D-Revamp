@@ -151,35 +151,51 @@ class GUI:
         else:
             self.trialTog.configure(text='Practice')
 
-    def subjectSubmit(self):
-        self.subjectSaved = []
-        for child in self.frame2.winfo_children():
+    def checkFields(self, frame, stringVars):
+        if stringVars:
+            for i in stringVars:
+                if len(i.get()) == 0:
+                    return True
+        for child in frame.winfo_children():
             if child.winfo_class() == 'Entry':
-                self.subjectSaved.append(child.get())
-        self.subjectSaved.append(self.domArmDef.get())
-        self.subjectSaved.append(self.recArmDef.get())
-        self.subjectSaved.append(self.genDef.get())
-        
-        self.subjectFinal = dict(zip(self.subjectInfo,self.subjectSaved))
-        self.data_queue.put(self.subjectFinal)
-        #print(self.subjectFinal)
+                if len(child.get()) == 0:
+                    return True
+        return False
+
+
+    def subjectSubmit(self):
+        subjectSaved = []
+        subStringVars = [self.domArmDef, self.recArmDef, self.genDef]
+
+        if self.checkFields(self.frame2, subStringVars):
+            print('NO')
+        else:
+            for child in self.frame2.winfo_children():
+                if child.winfo_class() == 'Entry':
+                    subjectSaved.append(child.get())
+            for i in self.stringVars:
+                subjectSaved.append(i.get())
+
+            self.subjectFinal = dict(zip(self.subjectInfo, self.subjectSaved))
+            #print(self.subjectFinal)
+        #self.data_queue.put(self.subjectFinal)
 
     def jacobSubmit(self):
-        self.jacobSaved = []
+        jacobSaved = []
         for child in self.frame3.winfo_children():
             if child.winfo_class() == 'Entry':
-                self.jacobSaved.append(child.get())
+                jacobSaved.append(child.get())
         
-        self.jacobFinal = dict(zip(self.jacobInfo,self.jacobSaved))
+        self.jacobFinal = dict(zip(self.jacobInfo, jacobSaved))
         print(self.jacobFinal)
 
     def maxSubmit(self):
-        self.maxSaved = []
+        maxSaved = []
         for child in self.frame4.winfo_children():
             if child.winfo_class() == 'Entry':
-                self.maxSaved.append(child.get())
+                maxSaved.append(child.get())
         
-        self.maxFinal = dict(zip(self.maxInfo,self.maxSaved))
+        self.maxFinal = dict(zip(self.maxInfo, maxSaved))
         print(self.maxFinal)
 
 def launchGUI(conn):
@@ -192,4 +208,4 @@ def launchGUI(conn):
     
 
 if __name__=='__main__':
-    pass
+    launchGUI(conn=[])
