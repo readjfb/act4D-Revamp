@@ -1,10 +1,11 @@
 import tkinter as tk
-from multiprocessing.connection import Client
+from multiprocessing import Process, Queue
 from tkinter import ttk
+from tkinter import messagebox
 
 class GUI:
     def __init__(self, master, conn, in_conn):
-        # queue for multiprocessing
+        # queues for multiprocessing
         self.data_queue = conn
         self.in_queue = in_conn
 
@@ -110,6 +111,7 @@ class GUI:
         self.maxInfo = ["Shoulder Abduction Angle","Max Inv. Elbow Torque","Max Elbow Flexion",
                         "Synergy TFlex Involuntary","Max involuntary extension","Max Elbow Extension",
                         "Synergy Text Involuntary"]
+
         for i in range(len(self.maxInfo)):
             tk.Label(self.frame4, text=self.maxInfo[i]).grid(row=i, column=0, padx=5, pady=5)
             tk.Entry(self.frame4).grid(row=i, column=1)
@@ -155,46 +157,65 @@ class GUI:
         else:
             self.trialTog.configure(text='Practice')
 
-    def subjectSubmit(self):
-        self.subjectSaved = []
-        for child in self.frame2.winfo_children():
+    def showError(self):
+        self.error = tk.messagebox.showerror(title='Oh no', message="All fields should be filled")
+
+    def checkFields(self, frame, stringVars):
+        if stringVars:
+            for i in stringVars:
+                if len(i.get()) == 0:
+                    return True
+        for child in frame.winfo_children():
             if child.winfo_class() == 'Entry':
-                self.subjectSaved.append(child.get())
-        self.subjectSaved.append(self.domArmDef.get())
-        self.subjectSaved.append(self.recArmDef.get())
-        self.subjectSaved.append(self.genDef.get())
+                if len(child.get()) == 0:
+                    return True
+        return False
 
-        self.subjectFinal = dict(zip(self.subjectInfo,self.subjectSaved))
 
-        self.transmit("Subject Info", self.subjectFinal)
-        #print(self.subjectFinal)
+    def subjectSubmit(self):
+        subjectSaved = []
+        subStringVars = [self.domArmDef, self.recArmDef, self.genDef]
+        if self.checkFields(self.frame2, subStringVars):
+            self.showError()
+        else:
+            for child in self.frame2.winfo_children():
+                if child.winfo_class() == 'Entry':
+                    subjectSaved.append(child.get())
+            for i in subStringVars:
+                subjectSaved.append(i.get())
+            self.subjectFinal = dict(zip(self.subjectInfo, subjectSaved))
+            self.transmit("Subject Info", self.subjectFinal)
 
     def jacobSubmit(self):
-        self.jacobSaved = []
-        for child in self.frame3.winfo_children():
-            if child.winfo_class() == 'Entry':
-                self.jacobSaved.append(child.get())
-        
-        self.jacobFinal = dict(zip(self.jacobInfo,self.jacobSaved))
-        self.transmit("Jacobean Constants", self.jacobFinal)
+        jacobSaved = []
+        if self.checkFields(self.frame3, False):
+            self.showError()
+        else:
+            for child in self.frame3.winfo_children():
+                if child.winfo_class() == 'Entry':
+                    jacobSaved.append(child.get())
+            self.jacobFinal = dict(zip(self.jacobInfo, jacobSaved))
+            self.transmit("Jacobean Constants", self.jacobFinal)
 
     def maxSubmit(self):
-        self.maxSaved = []
-        for child in self.frame4.winfo_children():
-            if child.winfo_class() == 'Entry':
-                self.maxSaved.append(child.get())
-        
-        self.maxFinal = dict(zip(self.maxInfo,self.maxSaved))
-        self.transmit("Maxes", self.maxFinal)
+        maxSaved = []
+        if self.checkFields(self.frame4, False):
+            self.showError()
+        else:
+            for child in self.frame4.winfo_children():
+                if child.winfo_class() == 'Entry':
+                    maxSaved.append(child.get())
+            self.maxFinal = dict(zip(self.maxInfo,self.maxSaved))
+            self.transmit("Maxes", self.maxFinal)
 
 def launchGUI(conn, in_conn):
     # run the GUI
     root = tk.Tk()
     gui = GUI(root, conn, in_conn)
-    #gui.data_queue.put([42, None, 'hello'])
     tk.mainloop()
     exit()
     
 
 if __name__=='__main__':
+    #launchGUI(conn=Queue(),in_conn=Queue())
     pass
