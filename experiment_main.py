@@ -32,8 +32,8 @@ class MainExperiment:
 
     # Info about the participants
     participant_age: float = 0
-    partipant_gender: str = "UNSPECIFIED"
-    particiapnt_years_since_stroke: int = 0
+    participant_gender: str = "UNSPECIFIED"
+    participant_years_since_stroke: int = 0
     participant_dominant_arm: str = "RIGHT"
     participant_paretic_arm: str = "NONE"
 
@@ -146,7 +146,7 @@ def main():
     while em_p.is_alive():
         data = None
 
-        while not data_intake_queue.empty():
+        '''while not data_intake_queue.empty():
             data_seq = data_intake_queue.get()
             for point in data_seq:
                 data_buffer.append(point)
@@ -155,23 +155,29 @@ def main():
             data = data_buffer.popleft()
 
         if not data:
-            continue
+            continue'''
 
         # Get the data from the remote controls
         while not gui_queue.empty():
             header, data = gui_queue.get()
 
-            if header == "Subject info":
+            if header == "Start":
+                #experiment.experiment_mode = data["Trial Toggle"]
+                pass
+
+            if header == "Pause":
+                experiment.paused = data
+
+            if header == "Subject Info":
                 experiment.participant_age = data["Age"]
-                experiment.particiapnt_years_since_stroke = data["Years since stroke"]
+                experiment.participant_years_since_stroke = data["Years since stroke"]
                 experiment.participant_dominant_arm = data["Dominant Arm"]
                 experiment.participant_paretic_arm = data["Recovery Paretic Arm"]
-                experiment.partipant_gender = data["Gender"]
+                experiment.participant_gender = data["Gender"]
 
                 experiment.rNSA = data["rNSA"]
                 experiment.FMA = data["FMA"]
                 experiment.subject_type = data["Subject Type"]
-
 
             print(header, "|||", data)
 
@@ -182,11 +188,10 @@ def main():
         # arguements
         transfer = dict.fromkeys(TRANSMIT_KEYS, 0)
 
-
         transfer["sound_trigger"] = [False] * 13
         transfer["stop_trigger"] = False
 
-        experiment.match_tor, experiment.matchF, experiment.timestep = data
+        experiment.match_tor, experiment.matchF, experiment.timestep = [0.6, 0.7, 0]
 
         # For all of the other stuff that we want saved, add to this call
         data_save_seq = [
@@ -197,13 +202,12 @@ def main():
             experiment.mode_state,
             experiment.state_section,
             experiment.paused,
-            experiment.particiapnt_years_since_stroke,
+            experiment.participant_years_since_stroke,
             experiment.participant_age,
             experiment.participant_dominant_arm,
             experiment.participant_paretic_arm,
-            experiment.partipant_gender,
+            experiment.participant_gender,
         ]
-
         saver.add_data(data_save_seq)
 
         # Call the function that corresponds to the current mode
@@ -217,8 +221,8 @@ def main():
     # Exit all processes
 
     # Exit the DAQ
-    data_intake_comm_queue.put("EXIT")
-    data_intake_p.join()
+    #data_intake_comm_queue.put("EXIT")
+    #data_intake_p.join()
 
     # Clear the queues
     for queue in QUEUES:
