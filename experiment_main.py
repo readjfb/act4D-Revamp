@@ -189,50 +189,17 @@ def main():
         if data_buffer:
             data = data_buffer.popleft()
 
-        if not data:
-            continue
+        
 
         # Get the data from the remote controls
         while not gui_queue.empty():
             header, gui_data = gui_queue.get()
 
-            # Not sure how to handle starting and ending trials
-            if header == "Start":
-                #experiment.experiment_mode = data["Trial Toggle"]
-                pass
-
-            if header == "End":
-                pass
-
-            if header == "Pause":
-                experiment.paused = data
-
             if header == "Close":
                 gui_p.terminate()
                 em_p.terminate()
 
-            if header == "Save":
-                # For all of the other stuff that we want saved, add to this call
-                data_save_seq = [
-                    experiment.match_tor,
-                    experiment.matchF,
-                    experiment.timestep,
-                    experiment.experiment_mode,
-                    experiment.mode_state,
-                    experiment.state_section,
-                    experiment.paused,
-                    experiment.participant_years_since_stroke,
-                    experiment.participant_age,
-                    experiment.participant_dominant_arm,
-                    experiment.participant_paretic_arm,
-                    experiment.participant_gender,
-                ]
-                saver.add_data(data_save_seq)
-
-            if header == "Erase":
-                saver.clear()
-
-            if header == "Subject info":
+            elif header == "Subject info":
                 experiment.participant_age = gui_data["Age"]
                 experiment.particiapnt_years_since_stroke = gui_data["Years since stroke"]
                 experiment.participant_dominant_arm = gui_data["Dominant Arm"]
@@ -243,18 +210,11 @@ def main():
                 experiment.FMA = gui_data["FMA"]
                 experiment.subject_type = gui_data["Subject Type"]
 
-            # Unsure where these constants should be stored,
-            # I can add these fields in the experiment class if necessary
-            if header == "Jacobean Constants":
+            elif header == "Jacobean Constants":
                 pass
 
-            if header == "Maxes":
+            elif header == "Maxes":
                 pass
-
-            elif header == "EXIT":
-                print("Terminating!")
-                
-                em_p.terminate()
 
 
             elif header == "Save":
@@ -272,6 +232,10 @@ def main():
 
             print(header, "|||", gui_data)
 
+        if not data:
+            continue
+        
+        experiment.match_tor, experiment.matchF, experiment.timestep = data
 
         # Initializes the dict of outputs with zeros
         # Care should be taken S.T. dict is initialized with valid, legal
@@ -280,8 +244,6 @@ def main():
 
         transfer["sound_trigger"] = [False] * 13
         transfer["stop_trigger"] = False
-
-        experiment.match_tor, experiment.matchF, experiment.timestep = [0.6, 0.7, 0]
 
         # Call the function that corresponds to the current mode
         # They all should take in the experiment dataclass and the transfer dict
