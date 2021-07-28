@@ -45,6 +45,9 @@ class MainExperiment:
     trial_toggle: str = "Testing"
     testing_arm: str = "Default"
 
+    experiment_cache: List[float] = field(default_factory=list)
+    prev_time: float = 0.0
+
     sound_trigger: List[bool] = field(default_factory=list)
 
     stop_trigger: bool = False
@@ -52,6 +55,9 @@ class MainExperiment:
     def __post_init__(self):
         if not self.sound_trigger:
             self.sound_trigger = [False] * 13
+
+        if not self.experiment_cache:
+            self.experiment_cache = list()
 
 
 def default_demo(experiment, transfer):
@@ -79,6 +85,11 @@ def default_demo(experiment, transfer):
 
 def blank_screen(experiment, transfer):
     transfer = transfer
+
+def zero_sensors(experiment, transfer):
+    if experiment.mode_state == "Default":
+        transfer = transfer
+    # if experiment.mode_state == "Zeroing":
 
 
 def main():
