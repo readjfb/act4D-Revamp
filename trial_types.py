@@ -1,0 +1,1 @@
+trial_types = ["DEMO", "BLANK"]

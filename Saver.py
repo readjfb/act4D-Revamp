@@ -28,11 +28,10 @@ class data_saver(object):
 
     def clear(self):
         """
-        Clear the data cache AND the header
+        Clear the data cache
 
         :return: returns nothing
         """
-        self.header = None
         self.data_cache.clear()
 
     def add_header(self, header_list):
@@ -53,7 +52,6 @@ class data_saver(object):
 
         :return: returns nothing
         """
-
         path = f"{self.save_dir}/{mode}/"
 
         try:

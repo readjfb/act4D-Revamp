@@ -41,6 +41,13 @@ class MainExperiment:
     FMA: int = 0
     subject_type: str = "UNSPECIFIED"
 
+    subject_number: float = 0
+    trial_toggle: str = "Testing"
+    testing_arm: str = "Default"
+
+    experiment_cache: List[float] = field(default_factory=list)
+    prev_time: float = 0.0
+
     sound_trigger: List[bool] = field(default_factory=list)
 
     stop_trigger: bool = False
@@ -48,6 +55,9 @@ class MainExperiment:
     def __post_init__(self):
         if not self.sound_trigger:
             self.sound_trigger = [False] * 13
+
+        if not self.experiment_cache:
+            self.experiment_cache = list()
 
 
 def default_demo(experiment, transfer):
@@ -72,6 +82,14 @@ def default_demo(experiment, transfer):
 
     else:
         print("Invalid state entered")
+
+def blank_screen(experiment, transfer):
+    transfer = transfer
+
+def zero_sensors(experiment, transfer):
+    if experiment.mode_state == "Default":
+        transfer = transfer
+    # if experiment.mode_state == "Zeroing":
 
 
 def main():
@@ -118,6 +136,23 @@ def main():
     # and might change it later on
     saver = data_saver("subject0")
 
+    saver.add_header(
+        [
+            "Current Tor",
+            "Current F",
+            "Time",
+            "Experiment Mode",
+            "Mode State",
+            "State Section",
+            "Paused",
+            "Years Since Stroke",
+            "Age",
+            "Dom. Arm",
+            "Paretic Arm",
+            "Gender",
+        ]
+    )
+    
     # Initialize the experiment dataclass
     experiment = MainExperiment()
 
@@ -137,7 +172,7 @@ def main():
         "stop_trigger",
     ]
 
-    MODE_SWITCHER = {"DEMO": default_demo}
+    MODE_SWITCHER = {"DEMO": default_demo, "BLANK": blank_screen}
 
     # If any of the windows are closed, quit for now; this is something that could be changed
 
@@ -159,7 +194,7 @@ def main():
 
         # Get the data from the remote controls
         while not gui_queue.empty():
-            header, data = gui_queue.get()
+            header, gui_data = gui_queue.get()
 
             # Not sure how to handle starting and ending trials
             if header == "Start":
@@ -197,16 +232,16 @@ def main():
             if header == "Erase":
                 saver.clear()
 
-            if header == "Subject Info":
-                experiment.participant_age = data["Age"]
-                experiment.participant_years_since_stroke = data["Years since stroke"]
-                experiment.participant_dominant_arm = data["Dominant Arm"]
-                experiment.participant_paretic_arm = data["Recovery Paretic Arm"]
-                experiment.participant_gender = data["Gender"]
+            if header == "Subject info":
+                experiment.participant_age = gui_data["Age"]
+                experiment.particiapnt_years_since_stroke = gui_data["Years since stroke"]
+                experiment.participant_dominant_arm = gui_data["Dominant Arm"]
+                experiment.participant_paretic_arm = gui_data["Recovery Paretic Arm"]
+                experiment.partipant_gender = gui_data["Gender"]
 
-                experiment.rNSA = data["rNSA"]
-                experiment.FMA = data["FMA"]
-                experiment.subject_type = data["Subject Type"]
+                experiment.rNSA = gui_data["rNSA"]
+                experiment.FMA = gui_data["FMA"]
+                experiment.subject_type = gui_data["Subject Type"]
 
             # Unsure where these constants should be stored,
             # I can add these fields in the experiment class if necessary
@@ -216,9 +251,27 @@ def main():
             if header == "Maxes":
                 pass
 
-            print(header, "|||", data)
+            elif header == "EXIT":
+                print("Terminating!")
+                
+                em_p.terminate()
 
-        # do the parsing of the queue here
+
+            elif header == "Save":
+                saver.save_data(experiment.experiment_mode)
+                saver.clear()
+
+            elif header == "Erase":
+                saver.clear()
+
+            elif header == "Start":
+                experiment.subject_number = gui_data["Subject Number"]
+                experiment.trial_toggle = gui_data["Trial Toggle"]
+                experiment.testing_arm = gui_data["Testing Arm"]
+                experiment.experiment_mode = gui_data["Trial Type"]
+
+            print(header, "|||", gui_data)
+
 
         # Initializes the dict of outputs with zeros
         # Care should be taken S.T. dict is initialized with valid, legal
@@ -249,25 +302,7 @@ def main():
         while not queue.empty():
             queue.get_nowait()
 
-    # Save the data
-    saver.add_header(
-        [
-            "Current Tor",
-            "Current F",
-            "Time",
-            "Experiment Mode",
-            "Mode State",
-            "State Section",
-            "Paused",
-            "Years Since Stroke",
-            "Age",
-            "Dom. Arm",
-            "Paretic Arm",
-            "Gender",
-        ]
-    )
-    saver.save_data(experiment.experiment_mode)
-
+    
 
 if __name__ == "__main__":
     main()
