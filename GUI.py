@@ -163,9 +163,6 @@ class GUI:
 
 
     # Helper functions
-    def close(self):
-        self.master.destroy()
-
     def transmit(self, header, information):
         self.data_queue.put((header, information))
 
@@ -247,6 +244,9 @@ class GUI:
 
     def erase(self):
         self.transmit("Erase", 'erase')
+
+    def close(self):
+        self.transmit("Close", "close")
 
 def launchGUI(conn, in_conn):
     # run the GUI
