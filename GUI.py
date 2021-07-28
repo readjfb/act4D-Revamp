@@ -28,38 +28,49 @@ class GUI:
         self.notebk.pack(expand = 1, fill="both")
 
         # General Pane
-        self.trialTog = ttk.Button(self.frame1, text='Practice', command=self.toggle)
-        self.trialTog.grid(column=1, row=0, padx=5, pady=5)
+        self.generalInfo = ["Subject Number", "Trial Toggle", "Testing Arm", "Trial Type"]
 
-        self.subNum = tk.Label(self.frame1, text="Subject Number")
+        self.toggleDef = tk.StringVar(self.master)
+        self.toggleTypes = ['Practice', 'Testing']
+        self.toggleFirst = 'Practice/Testing'
+        self.toggleDef.set(self.toggleFirst)
+        self.toggleType = tk.OptionMenu(self.frame1, self.toggleDef, *self.toggleTypes)
+        self.toggleType.grid(column=1, row=0, padx=5, pady=5)
+
+        self.subNum = tk.Label(self.frame1, text=self.generalInfo[0])
         self.subNum.grid(column=0, row=1, padx=5, pady=5)
         self.subNumEnt = tk.Entry(self.frame1)
         self.subNumEnt.grid(column=1, row=1, padx=5, pady=5)
 
-        self.testArmLab = tk.Label(self.frame1, text="Testing Arm")
+        self.testArmLab = tk.Label(self.frame1, text=self.generalInfo[2])
         self.testArmLab.grid(column=0, row=2, padx=5, pady=5)
         self.testArmDef = tk.StringVar(self.master)
-        self.testArmDef.set("Left/Right")
+        self.armFirst = 'Left/Right'
+        self.testArmDef.set(self.armFirst)
         self.ArmTypes = ['Left','Right']
         self.testArmType = tk.OptionMenu(self.frame1, self.testArmDef, *self.ArmTypes)
         self.testArmType.grid(column=1, row=2, padx=5, pady=5)
         
-        self.start = ttk.Button(self.frame1, text='Start Trial')
+        self.start = ttk.Button(self.frame1, text='Start Trial', command=self.start)
         self.start.grid(column=0, row=3, padx=5, pady=5)
-        self.pause = ttk.Button(self.frame1, text='Pause Trial')
+        self.pause = ttk.Button(self.frame1, text='Pause Trial', command=self.pause)
         self.pause.grid(column=1, row=3, padx=5, pady=5)
-        self.end = ttk.Button(self.frame1, text='End Trial')
+        self.end = ttk.Button(self.frame1, text='End Trial', command=self.end)
         self.end.grid(column=2, row=3, padx=5, pady=5)
 
         self.trialDef = tk.StringVar(self.master)
         self.trialTypes = ['option1','option2']
-        self.trialDef.set('Select a Trial Type')
+        self.trialFirst = 'Select a Trial Type'
+        self.trialDef.set(self.trialFirst)
         self.trialType = tk.OptionMenu(self.frame1, self.trialDef, *self.trialTypes)
         self.trialType.grid(column=0, row=4, padx=5, pady=5)
 
-        self.save = ttk.Button(self.frame1, text='Save')
+        self.generalStringVars = [self.toggleDef, self.testArmDef, self.trialDef]
+        self.generalFirsts = [self.armFirst, self.trialFirst, self.toggleFirst]
+
+        self.save = ttk.Button(self.frame1, text='Save', command=self.save)
         self.save.grid(column=0, row=5, padx=5, pady=5)
-        self.erase = ttk.Button(self.frame1, text='Erase')
+        self.erase = ttk.Button(self.frame1, text='Erase', command=self.erase)
         self.erase.grid(column=1, row=5, padx=5, pady=5)
 
         self.quit = ttk.Button(self.frame1, text='Exit', command=self.close)
@@ -69,26 +80,32 @@ class GUI:
         self.subjectInfo = ['Age', 'Gender', 'Subject Type', 'Years since stroke',
                             'rNSA', 'FMA', 'Dominant Arm', 'Recovery Paretic Arm']
 
+        # Text entry fields
         for i in range(len(self.subjectInfo)):
             tk.Label(self.frame2, text=self.subjectInfo[i]).grid(row=i, column=0, padx=5, pady=5)
             if self.subjectInfo[i] not in ['Gender', 'Dominant Arm', 'Recovery Paretic Arm']:
                 tk.Entry(self.frame2).grid(row=i, column=1, padx=5, pady=5)
 
+        # Option Menus
         self.genDef = tk.StringVar(self.master)
-        self.genDef.set('Select a gender')
+        self.genFirst = 'Select a gender'
+        self.genDef.set(self.genFirst)
         self.genders = ["Male", "Female", "Other"]
         self.genEnt = tk.OptionMenu(self.frame2, self.genDef, *self.genders)
         self.genEnt.grid(row=1, column=1, padx=5, pady=5)
 
         self.domArmDef = tk.StringVar(self.master)
-        self.domArmDef.set("Left/Right")
+        self.domArmDef.set(self.armFirst)
         self.domArmEnt = tk.OptionMenu(self.frame2, self.domArmDef, *self.ArmTypes)
         self.domArmEnt.grid(row=6, column=1, padx=5, pady=5)
 
         self.recArmDef = tk.StringVar(self.master)
-        self.recArmDef.set("Left/Right")
+        self.recArmDef.set(self.armFirst)
         self.recArmEnt = tk.OptionMenu(self.frame2, self.recArmDef, *self.ArmTypes)
         self.recArmEnt.grid(row=7, column=1, padx=5, pady=5)
+
+        self.subStringVars = [self.domArmDef, self.recArmDef, self.genDef]
+        self.subFirsts = [self.armFirst, self.genFirst]
 
         self.subjectInfo = ['Age', 'Subject Type', 'Years since stroke','rNSA', 'FMA',
                             'Dominant Arm', 'Recovery Paretic Arm', 'Gender']
@@ -150,20 +167,14 @@ class GUI:
 
     def transmit(self, header, information):
         self.data_queue.put((header, information))
-    
-    def toggle(self):
-        if self.trialTog['text'] == 'Practice':
-            self.trialTog.configure(text='Testing')
-        else:
-            self.trialTog.configure(text='Practice')
 
     def showError(self):
         self.error = tk.messagebox.showerror(title='Oh no', message="All fields should be filled")
 
-    def checkFields(self, frame, stringVars):
-        if stringVars:
+    def checkFields(self, frame, stringVars, firsts):
+        if stringVars and firsts:
             for i in stringVars:
-                if len(i.get()) == 0:
+                if len(i.get()) == 0 or i.get() in firsts:
                     return True
         for child in frame.winfo_children():
             if child.winfo_class() == 'Entry':
@@ -174,39 +185,66 @@ class GUI:
 
     def subjectSubmit(self):
         subjectSaved = []
-        subStringVars = [self.domArmDef, self.recArmDef, self.genDef]
-        if self.checkFields(self.frame2, subStringVars):
+        if self.checkFields(self.frame2, self.subStringVars, self.subFirsts):
             self.showError()
         else:
             for child in self.frame2.winfo_children():
                 if child.winfo_class() == 'Entry':
                     subjectSaved.append(child.get())
-            for i in subStringVars:
+            for i in self.subStringVars:
                 subjectSaved.append(i.get())
-            self.subjectFinal = dict(zip(self.subjectInfo, subjectSaved))
-            self.transmit("Subject Info", self.subjectFinal)
+            subjectFinal = dict(zip(self.subjectInfo, subjectSaved))
+            self.transmit("Subject Info", subjectFinal)
 
     def jacobSubmit(self):
         jacobSaved = []
-        if self.checkFields(self.frame3, False):
+        if self.checkFields(self.frame3, False, False):
             self.showError()
         else:
             for child in self.frame3.winfo_children():
                 if child.winfo_class() == 'Entry':
                     jacobSaved.append(child.get())
-            self.jacobFinal = dict(zip(self.jacobInfo, jacobSaved))
-            self.transmit("Jacobean Constants", self.jacobFinal)
+            jacobFinal = dict(zip(self.jacobInfo, jacobSaved))
+            self.transmit("Jacobean Constants", jacobFinal)
 
     def maxSubmit(self):
         maxSaved = []
-        if self.checkFields(self.frame4, False):
+        if self.checkFields(self.frame4, False, False):
             self.showError()
         else:
             for child in self.frame4.winfo_children():
                 if child.winfo_class() == 'Entry':
                     maxSaved.append(child.get())
-            self.maxFinal = dict(zip(self.maxInfo,self.maxSaved))
-            self.transmit("Maxes", self.maxFinal)
+            maxFinal = dict(zip(self.maxInfo, maxSaved))
+            self.transmit("Maxes", maxFinal)
+
+    def start(self):
+        generalSaved = []
+        if self.checkFields(self.frame1, self.generalStringVars, self.generalFirsts):
+            self.showError()
+        else:
+            for child in self.frame1.winfo_children():
+                if child.winfo_class() == 'Entry':
+                    generalSaved.append(child.get())
+            for i in self.generalStringVars:
+                generalSaved.append(i.get())
+            generalFinal = dict(zip(self.generalInfo, generalSaved))
+            self.transmit("Start", generalFinal)
+
+    def pause(self):
+        self.transmit("Pause", 'pause')
+
+    def end(self):
+        self.transmit("End", 'end')
+
+    def save(self):
+        if self.checkFields(self.frame1, self.generalStringVars, self.generalFirsts):
+            self.showError()
+        else:
+            self.transmit("Save", "save")
+
+    def erase(self):
+        self.transmit("Erase", 'erase')
 
 def launchGUI(conn, in_conn):
     # run the GUI
@@ -217,5 +255,5 @@ def launchGUI(conn, in_conn):
     
 
 if __name__=='__main__':
-    #launchGUI(conn=Queue(),in_conn=Queue())
-    pass
+    launchGUI(conn=Queue(),in_conn=Queue())
+    #pass
