@@ -87,8 +87,17 @@ def blank_screen(experiment, transfer):
     transfer = transfer
 
 def zero_sensors(experiment, transfer):
+    # To be created
     if experiment.mode_state == "Default":
-        transfer = transfer
+        transfer["target_tor"] = experiment.target_tor
+        transfer["low_lim_tor"] = experiment.low_lim_tor
+        transfer["up_lim_tor"] = experiment.up_lim_tor
+        transfer["match_tor"] = experiment.match_tor
+
+        transfer["targetF"] = experiment.targetF
+        transfer["low_limF"] = experiment.low_limF
+        transfer["up_limF"] = experiment.up_limF
+        transfer["matchF"] = experiment.matchF
     # if experiment.mode_state == "Zeroing":
 
 
@@ -215,7 +224,6 @@ def main():
 
             elif header == "Maxes":
                 pass
-
 
             elif header == "Save":
                 saver.save_data(experiment.experiment_mode)
