@@ -2,6 +2,7 @@ import tkinter as tk
 from multiprocessing import Process, Queue
 from tkinter import ttk
 from tkinter import messagebox
+from trial_types import trial_types
 
 class GUI:
     def __init__(self, master, conn, in_conn):
@@ -59,7 +60,7 @@ class GUI:
         self.end.grid(column=2, row=3, padx=5, pady=5)
 
         self.trialDef = tk.StringVar(self.master)
-        self.trialTypes = ['option1','option2']
+        self.trialTypes = trial_types
         self.trialFirst = 'Select a Trial Type'
         self.trialDef.set(self.trialFirst)
         self.trialType = tk.OptionMenu(self.frame1, self.trialDef, *self.trialTypes)
@@ -161,12 +162,13 @@ class GUI:
         self.pause.grid(row=3, column=0, padx=5, pady=5)
 
 
-    # Helper functions
-    def close(self):
-        self.master.destroy()
-
     def transmit(self, header, information):
         self.data_queue.put((header, information))
+
+    # Helper functions
+    def close(self):
+        self.transmit("EXIT", None)
+        self.master.destroy()
 
     def showError(self):
         self.error = tk.messagebox.showerror(title='Oh no', message="All fields should be filled")
