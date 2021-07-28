@@ -54,6 +54,7 @@ class GUI:
         
         self.start = ttk.Button(self.frame1, text='Start Trial', command=self.start)
         self.start.grid(column=0, row=3, padx=5, pady=5)
+        self.pauseFlag = False
         self.pause = ttk.Button(self.frame1, text='Pause Trial', command=self.pause)
         self.pause.grid(column=1, row=3, padx=5, pady=5)
         self.end = ttk.Button(self.frame1, text='End Trial', command=self.end)
@@ -166,6 +167,10 @@ class GUI:
         self.data_queue.put((header, information))
 
     # Helper functions
+
+    def transmit(self, header, information):
+        self.data_queue.put((header, information))
+
     def close(self):
         self.transmit("EXIT", None)
         self.master.destroy()
@@ -234,7 +239,8 @@ class GUI:
             self.transmit("Start", generalFinal)
 
     def pause(self):
-        self.transmit("Pause", 'pause')
+        self.pauseFlag = not(self.pauseFlag)
+        self.transmit("Pause", self.pauseFlag)
 
     def end(self):
         self.transmit("End", 'end')
@@ -248,6 +254,9 @@ class GUI:
     def erase(self):
         self.transmit("Erase", 'erase')
 
+    def close(self):
+        self.transmit("Close", "close")
+
 def launchGUI(conn, in_conn):
     # run the GUI
     root = tk.Tk()
@@ -257,5 +266,5 @@ def launchGUI(conn, in_conn):
     
 
 if __name__=='__main__':
-    launchGUI(conn=Queue(),in_conn=Queue())
-    #pass
+    #launchGUI(conn=Queue(),in_conn=Queue())
+    pass

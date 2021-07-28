@@ -32,8 +32,8 @@ class MainExperiment:
 
     # Info about the participants
     participant_age: float = 0
-    partipant_gender: str = "UNSPECIFIED"
-    particiapnt_years_since_stroke: int = 0
+    participant_gender: str = "UNSPECIFIED"
+    participant_years_since_stroke: int = 0
     participant_dominant_arm: str = "RIGHT"
     participant_paretic_arm: str = "NONE"
 
@@ -196,6 +196,42 @@ def main():
         while not gui_queue.empty():
             header, gui_data = gui_queue.get()
 
+            # Not sure how to handle starting and ending trials
+            if header == "Start":
+                #experiment.experiment_mode = data["Trial Toggle"]
+                pass
+
+            if header == "End":
+                pass
+
+            if header == "Pause":
+                experiment.paused = data
+
+            if header == "Close":
+                gui_p.terminate()
+                em_p.terminate()
+
+            if header == "Save":
+                # For all of the other stuff that we want saved, add to this call
+                data_save_seq = [
+                    experiment.match_tor,
+                    experiment.matchF,
+                    experiment.timestep,
+                    experiment.experiment_mode,
+                    experiment.mode_state,
+                    experiment.state_section,
+                    experiment.paused,
+                    experiment.participant_years_since_stroke,
+                    experiment.participant_age,
+                    experiment.participant_dominant_arm,
+                    experiment.participant_paretic_arm,
+                    experiment.participant_gender,
+                ]
+                saver.add_data(data_save_seq)
+
+            if header == "Erase":
+                saver.clear()
+
             if header == "Subject info":
                 experiment.participant_age = gui_data["Age"]
                 experiment.particiapnt_years_since_stroke = gui_data["Years since stroke"]
@@ -207,10 +243,19 @@ def main():
                 experiment.FMA = gui_data["FMA"]
                 experiment.subject_type = gui_data["Subject Type"]
 
+            # Unsure where these constants should be stored,
+            # I can add these fields in the experiment class if necessary
+            if header == "Jacobean Constants":
+                pass
+
+            if header == "Maxes":
+                pass
+
             elif header == "EXIT":
                 print("Terminating!")
                 
                 em_p.terminate()
+
 
             elif header == "Save":
                 saver.save_data(experiment.experiment_mode)
@@ -228,34 +273,15 @@ def main():
             print(header, "|||", gui_data)
 
 
-        # Intializes the dict of outputs with zeros
+        # Initializes the dict of outputs with zeros
         # Care should be taken S.T. dict is initialized with valid, legal
-        # arguements
+        # arguments
         transfer = dict.fromkeys(TRANSMIT_KEYS, 0)
-
 
         transfer["sound_trigger"] = [False] * 13
         transfer["stop_trigger"] = False
 
-        experiment.match_tor, experiment.matchF, experiment.timestep = data
-
-        # For all of the other stuff that we want saved, add to this call
-        data_save_seq = [
-            experiment.match_tor,
-            experiment.matchF,
-            experiment.timestep,
-            experiment.experiment_mode,
-            experiment.mode_state,
-            experiment.state_section,
-            experiment.paused,
-            experiment.particiapnt_years_since_stroke,
-            experiment.participant_age,
-            experiment.participant_dominant_arm,
-            experiment.participant_paretic_arm,
-            experiment.partipant_gender,
-        ]
-
-        saver.add_data(data_save_seq)
+        experiment.match_tor, experiment.matchF, experiment.timestep = [0.6, 0.7, 0]
 
         # Call the function that corresponds to the current mode
         # They all should take in the experiment dataclass and the transfer dict
