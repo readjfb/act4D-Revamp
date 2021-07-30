@@ -28,6 +28,9 @@ class MainExperiment:
     up_limF: float = 0.8
     matchF: float = 0.75
 
+    match_tor_zeroed: float = 0
+    matchF_zeroed: float = 0
+
     timestep: float = 0
 
     # Info about the participants
@@ -45,7 +48,12 @@ class MainExperiment:
     trial_toggle: str = "Testing"
     testing_arm: str = "Default"
 
-    experiment_cache: List[float] = field(default_factory=list)
+    cache_tor: List[float] = field(default_factory=list)
+    cacheF: List[float] = field(default_factory=list)
+
+    tare_tor: float = 0.0
+    tare_f: float = 0.0
+
     prev_time: float = 0.0
 
     sound_trigger: List[bool] = field(default_factory=list)
@@ -56,8 +64,11 @@ class MainExperiment:
         if not self.sound_trigger:
             self.sound_trigger = [False] * 13
 
-        if not self.experiment_cache:
-            self.experiment_cache = list()
+        if not self.cache_tor:
+            self.cache_tor = list()
+
+        if not self.cacheF:
+            self.cacheF = list()
 
 
 def default_demo(experiment, transfer):
@@ -98,7 +109,20 @@ def zero_sensors(experiment, transfer):
         transfer["low_limF"] = experiment.low_limF
         transfer["up_limF"] = experiment.up_limF
         transfer["matchF"] = experiment.matchF
-    # if experiment.mode_state == "Zeroing":
+
+        experiment.cache_tor = list()
+        experiment.cacheF = list()
+
+    elif experiment.mode_stae == "Zeroing":
+        zero_time = 5
+        if experiment.timestep - experiment.prev_time > zero_time:
+            experiment.mode_state = "Default"
+
+            experiment.tare_tor = sum(experiment.cache_tor) / len(experiment.cache_tor)
+            experiment.tareF = sum(experiment.cacheF) / len(experiment.cacheF)
+
+        experiment.cache_tor.append(experiment.match_tor)
+        experiment.cacheF.append(experiment.matchF)
 
 
 def main():
@@ -181,7 +205,7 @@ def main():
         "stop_trigger",
     ]
 
-    MODE_SWITCHER = {"DEMO": default_demo, "BLANK": blank_screen}
+    MODE_SWITCHER = {"DEMO": default_demo, "BLANK": blank_screen, "ZERO": zero_sensors}
 
     # If any of the windows are closed, quit for now; this is something that could be changed
 
@@ -238,12 +262,29 @@ def main():
                 experiment.testing_arm = gui_data["Testing Arm"]
                 experiment.experiment_mode = gui_data["Trial Type"]
 
-            print(header, "|||", gui_data)
+            # print(header, "|||", gui_data)
 
         if not data:
             continue
         
         experiment.match_tor, experiment.matchF, experiment.timestep = data
+
+        experiment.match_tor_zeroed = experiment.match_tor - experiment.tare_tor
+        experiment.matchF_zeroed = experiment.matchF - experiment.tare_f
+
+        # This aligns with the header; if we change the order of the header, this has to be changed as well
+        saver.add_data([experiment.match_tor_zeroed,
+                        experiment.matchF_zeroed,
+                        experiment.timestep,
+                        experiment.experiment_mode,
+                        experiment.mode_state,
+                        experiment.state_section,
+                        experiment.paused,
+                        experiment.participant_years_since_stroke,
+                        experiment.participant_age,
+                        experiment.participant_dominant_arm,
+                        experiment.participant_paretic_arm,
+                        experiment.participant_gender])
 
         # Initializes the dict of outputs with zeros
         # Care should be taken S.T. dict is initialized with valid, legal
