@@ -2,6 +2,7 @@ from PyQt5 import QtWidgets, QtCore
 import pyqtgraph as pg
 import sys  # We need sys so that we can pass argv to QApplication
 from multiprocessing import Queue
+from collections import deque
 
 
 class MainWindow2(QtWidgets.QMainWindow):
@@ -28,8 +29,8 @@ class MainWindow2(QtWidgets.QMainWindow):
     def _init_timeseries(self):
         self.plots = list()
         self.parameters = list()
-        self.times = list()
-        self.times.append(0)
+        self.times = deque([], maxlen=self.num_points)
+
         for i in range(self.num_channels):
             # To do: create better layout
             p = self.window.addPlot(row=i, col=0)
@@ -41,7 +42,7 @@ class MainWindow2(QtWidgets.QMainWindow):
             if i == 0:
                 p.setTitle('Torque Plot')
             self.plots.append(p)
-            self.parameters.append([1])
+            self.parameters.append(deque([], maxlen=self.num_points))
 
     def update_plot_data(self, comm_queue):
         data = []
@@ -52,7 +53,7 @@ class MainWindow2(QtWidgets.QMainWindow):
             if val == "EXIT":
                 sys.exit(QtWidgets.QApplication(sys.argv).exec_())
 
-            data = val
+        data = val
         
         if not data:
             return
@@ -61,14 +62,11 @@ class MainWindow2(QtWidgets.QMainWindow):
         current_time = data[0]
         data_sensors = data[1:]
 
-        self.times = self.times[-self.num_points:]
         self.times.append(current_time)
 
         for count, datum in enumerate(data_sensors):
-            self.parameters[count] = self.parameters[count][-self.num_points:]
             self.parameters[count].append(datum)
-            self.plots[count].plot(self.times, self.parameters[count])
-            self.plots[count].setXRange(self.times[0], self.times[-1])
+            self.plots[count].plot(self.times, self.parameters[count], clear=True)
         
 def animation_control(comm_queue):
     app = QtWidgets.QApplication(sys.argv)
