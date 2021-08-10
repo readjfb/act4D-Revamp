@@ -6,17 +6,19 @@ from collections import deque
 
 
 class MainWindow2(QtWidgets.QMainWindow):
-    def __init__(self, communication_queue=None, *args, **kwargs):
+    def __init__(self, communication_queue=None, app=None, *args, **kwargs):
         super(MainWindow2, self).__init__(*args, **kwargs)
 
         self.window = pg.GraphicsWindow()
         self.window.show()
 
+        self.app = app
+
         # To do: Set num channels automatically based on length of data intake
         self.num_channels = 8
         self.update_speed_ms = 50
         self.window_size = 4
-        self.num_points = 100
+        self.num_points = 200
 
         self._init_timeseries()
 
@@ -51,7 +53,10 @@ class MainWindow2(QtWidgets.QMainWindow):
             val = comm_queue.get_nowait()
 
             if val == "EXIT":
-                sys.exit(QtWidgets.QApplication(sys.argv).exec_())
+                self.timer.stop()
+                self.window.close()
+                self.app.quit()
+                return
 
         data = val
         
@@ -70,6 +75,6 @@ class MainWindow2(QtWidgets.QMainWindow):
         
 def animation_control(comm_queue):
     app = QtWidgets.QApplication(sys.argv)
-    w = MainWindow2(comm_queue)
+    w = MainWindow2(comm_queue, app)
     w.show()
     sys.exit(app.exec_())
