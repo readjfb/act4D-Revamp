@@ -171,7 +171,7 @@ def main():
     plotting_comm_queue = Queue()
     QUEUES.append(plotting_comm_queue)
     plotting_p = Process(
-        target=animation_control, args=plotting_comm_queue
+        target=animation_control, args=(plotting_comm_queue,)
     )
     plotting_p.start()
 
@@ -311,6 +311,12 @@ def main():
         # This runs slowly, so we can run the emonitor whenever it's convenient
         if not emonitor_queue.full():
             emonitor_queue.put(transfer)
+
+        if not plotting_comm_queue.full():
+            graphed_data = [experiment.timestep]
+            graphed_data += [experiment.match_tor, experiment.match_tor_zeroed, experiment.matchF, experiment.matchF_zeroed]
+            graphed_data += [experiment.match_tor, experiment.match_tor_zeroed, experiment.matchF, experiment.matchF_zeroed]
+            plotting_comm_queue.put(graphed_data)
 
     # Exit all processes
 

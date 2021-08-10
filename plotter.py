@@ -1,18 +1,8 @@
 from PyQt5 import QtWidgets, QtCore
 import pyqtgraph as pg
 import sys  # We need sys so that we can pass argv to QApplication
-from data_intake import NI_Interface
 from multiprocessing import Queue
-from multiprocessing.connection import Client
 
-port_number = 6008
-
-'''
-    Establish a socket connection
-'''
-address = ('localhost', port_number)
-conn = Client(address)
-print("plotter connection established")
 
 class MainWindow2(QtWidgets.QMainWindow):
     def __init__(self, communication_queue=None, *args, **kwargs):
@@ -55,25 +45,21 @@ class MainWindow2(QtWidgets.QMainWindow):
 
     def update_plot_data(self, comm_queue):
         data = []
-        running = True
-        ni_interface = NI_Interface()
-        while running:
-            samples = ni_interface.read_samples()
 
-            if samples:
-                data.append(samples)
+        while not comm_queue.empty():
+            val = comm_queue.get_nowait()
 
-            while not comm_queue.empty():
-                val = comm_queue.get_nowait()
+            if val == "EXIT":
+                sys.exit(QtWidgets.QApplication(sys.argv).exec_())
 
-                if val == "EXIT":
-                    ni_interface.safe_exit()
-                    running = False
+            data = val
+        
+        if not data:
+            return
 
-        # Expects data coming in to be in the form [var1, var2..., time]?
-        # Probably not correct
-        current_time = data[-1]
-        data_sensors = data[0:-1]
+        # First value will be time, next 8 will be datapoints 
+        current_time = data[0]
+        data_sensors = data[1:]
 
         self.times = self.times[-self.num_points:]
         self.times.append(current_time)
@@ -83,7 +69,7 @@ class MainWindow2(QtWidgets.QMainWindow):
             self.parameters[count].append(datum)
             self.plots[count].plot(self.times, self.parameters[count])
             self.plots[count].setXRange(self.times[0], self.times[-1])
-
+        
 def animation_control(comm_queue):
     app = QtWidgets.QApplication(sys.argv)
     w = MainWindow2(comm_queue)
