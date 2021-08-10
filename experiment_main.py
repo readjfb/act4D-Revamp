@@ -7,6 +7,7 @@ from GUI import launchGUI as gui_run
 from dataclasses import dataclass, field
 from typing import List
 from collections import deque
+from plotter import animation_control
 
 
 @dataclass
@@ -165,6 +166,15 @@ def main():
     )
     data_intake_p.start()
 
+    # Initialize plotting???
+
+    plotting_comm_queue = Queue()
+    QUEUES.append(plotting_comm_queue)
+    plotting_p = Process(
+        target=animation_control, args=plotting_comm_queue
+    )
+    plotting_p.start()
+
     # Initialize the saver object; We'll change the stuff that gets passed in,
     # and might change it later on
     saver = data_saver("subject0")
@@ -306,7 +316,9 @@ def main():
 
     # Exit the DAQ
     data_intake_comm_queue.put("EXIT")
+    plotting_comm_queue.put("EXIT")
     data_intake_p.join()
+    plotting_p.join()
 
     # Clear the queues
     for queue in QUEUES:
