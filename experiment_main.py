@@ -114,7 +114,7 @@ def zero_sensors(experiment, transfer):
         experiment.cache_tor = list()
         experiment.cacheF = list()
 
-    elif experiment.mode_stae == "Zeroing":
+    elif experiment.mode_state == "Zeroing":
         zero_time = 5
         if experiment.timestep - experiment.prev_time > zero_time:
             experiment.mode_state = "Default"
@@ -131,7 +131,6 @@ def main():
     QUEUES = []
 
     # Process for monitor and monitor queue
-
     emonitor_queue = Queue()
 
     QUEUES.append(emonitor_queue)
@@ -142,7 +141,6 @@ def main():
     em_p.start()
 
     # Process and queues for the GUI
-
     gui_queue = Queue()
     gui_out_queue = Queue()
     QUEUES.append(gui_queue)
@@ -232,7 +230,13 @@ def main():
         if data_buffer:
             data = data_buffer.popleft()
 
-        
+        # Initializes the dict of outputs with zeros
+        # Care should be taken S.T. dict is initialized with valid, legal
+        # arguments
+        transfer = dict.fromkeys(TRANSMIT_KEYS, 0)
+
+        transfer["sound_trigger"] = [False] * 13
+        transfer["stop_trigger"] = False
 
         # Get the data from the remote controls
         while not gui_queue.empty():
@@ -241,13 +245,15 @@ def main():
             if header == "Close":
                 gui_p.terminate()
                 em_p.terminate()
+                data_intake_p.terminate()
+                plotting_p.terminate()
 
             elif header == "Subject info":
                 experiment.participant_age = gui_data["Age"]
-                experiment.particiapnt_years_since_stroke = gui_data["Years since stroke"]
+                experiment.participant_years_since_stroke = gui_data["Years since stroke"]
                 experiment.participant_dominant_arm = gui_data["Dominant Arm"]
                 experiment.participant_paretic_arm = gui_data["Recovery Paretic Arm"]
-                experiment.partipant_gender = gui_data["Gender"]
+                experiment.participant_gender = gui_data["Gender"]
 
                 experiment.rNSA = gui_data["rNSA"]
                 experiment.FMA = gui_data["FMA"]
@@ -272,7 +278,11 @@ def main():
                 experiment.testing_arm = gui_data["Testing Arm"]
                 experiment.experiment_mode = gui_data["Trial Type"]
 
-            # print(header, "|||", gui_data)
+                # Call the function that corresponds to the current mode
+                # They all should take in the experiment dataclass and the transfer dict
+                MODE_SWITCHER[experiment.experiment_mode](experiment, transfer)
+
+            #print(header, "|||", gui_data)
 
         if not data:
             continue
@@ -296,18 +306,6 @@ def main():
                         experiment.participant_paretic_arm,
                         experiment.participant_gender])
 
-        # Initializes the dict of outputs with zeros
-        # Care should be taken S.T. dict is initialized with valid, legal
-        # arguments
-        transfer = dict.fromkeys(TRANSMIT_KEYS, 0)
-
-        transfer["sound_trigger"] = [False] * 13
-        transfer["stop_trigger"] = False
-
-        # Call the function that corresponds to the current mode
-        # They all should take in the experiment dataclass and the transfer dict
-        MODE_SWITCHER[experiment.experiment_mode](experiment, transfer)
-
         # This runs slowly, so we can run the emonitor whenever it's convenient
         if not emonitor_queue.full():
             emonitor_queue.put(transfer)
@@ -330,8 +328,6 @@ def main():
     for queue in QUEUES:
         while not queue.empty():
             queue.get_nowait()
-
-    
 
 if __name__ == "__main__":
     main()
