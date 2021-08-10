@@ -95,8 +95,10 @@ def default_demo(experiment, transfer):
     else:
         print("Invalid state entered")
 
+
 def blank_screen(experiment, transfer):
     transfer = transfer
+
 
 def zero_sensors(experiment, transfer):
     # To be created
@@ -135,10 +137,7 @@ def main():
     emonitor_queue = Queue()
 
     QUEUES.append(emonitor_queue)
-    em_p = Process(
-        target=emonitor_run,
-        args=(1 / 60, emonitor_queue)
-    )
+    em_p = Process(target=emonitor_run, args=(1 / 60, emonitor_queue))
     em_p.start()
 
     # Process and queues for the GUI
@@ -148,10 +147,7 @@ def main():
     QUEUES.append(gui_queue)
     QUEUES.append(gui_out_queue)
 
-    gui_p = Process(
-        target=gui_run,
-        args=(gui_queue,gui_out_queue)
-    )
+    gui_p = Process(target=gui_run, args=(gui_queue, gui_out_queue))
     gui_p.start()
 
     # Initialize data collection
@@ -170,9 +166,7 @@ def main():
 
     plotting_comm_queue = Queue()
     QUEUES.append(plotting_comm_queue)
-    plotting_p = Process(
-        target=animation_control, args=(plotting_comm_queue,)
-    )
+    plotting_p = Process(target=animation_control, args=(plotting_comm_queue,))
     plotting_p.start()
 
     # Initialize the saver object; We'll change the stuff that gets passed in,
@@ -195,7 +189,7 @@ def main():
             "Gender",
         ]
     )
-    
+
     # Initialize the experiment dataclass
     experiment = MainExperiment()
 
@@ -232,8 +226,6 @@ def main():
         if data_buffer:
             data = data_buffer.popleft()
 
-        
-
         # Get the data from the remote controls
         while not gui_queue.empty():
             header, gui_data = gui_queue.get()
@@ -244,7 +236,9 @@ def main():
 
             elif header == "Subject info":
                 experiment.participant_age = gui_data["Age"]
-                experiment.particiapnt_years_since_stroke = gui_data["Years since stroke"]
+                experiment.particiapnt_years_since_stroke = gui_data[
+                    "Years since stroke"
+                ]
                 experiment.participant_dominant_arm = gui_data["Dominant Arm"]
                 experiment.participant_paretic_arm = gui_data["Recovery Paretic Arm"]
                 experiment.partipant_gender = gui_data["Gender"]
@@ -276,25 +270,29 @@ def main():
 
         if not data:
             continue
-        
+
         experiment.match_tor, experiment.matchF, experiment.timestep = data
 
         experiment.match_tor_zeroed = experiment.match_tor - experiment.tare_tor
         experiment.matchF_zeroed = experiment.matchF - experiment.tare_f
 
         # This aligns with the header; if we change the order of the header, this has to be changed as well
-        saver.add_data([experiment.match_tor_zeroed,
-                        experiment.matchF_zeroed,
-                        experiment.timestep,
-                        experiment.experiment_mode,
-                        experiment.mode_state,
-                        experiment.state_section,
-                        experiment.paused,
-                        experiment.participant_years_since_stroke,
-                        experiment.participant_age,
-                        experiment.participant_dominant_arm,
-                        experiment.participant_paretic_arm,
-                        experiment.participant_gender])
+        saver.add_data(
+            [
+                experiment.match_tor_zeroed,
+                experiment.matchF_zeroed,
+                experiment.timestep,
+                experiment.experiment_mode,
+                experiment.mode_state,
+                experiment.state_section,
+                experiment.paused,
+                experiment.participant_years_since_stroke,
+                experiment.participant_age,
+                experiment.participant_dominant_arm,
+                experiment.participant_paretic_arm,
+                experiment.participant_gender,
+            ]
+        )
 
         # Initializes the dict of outputs with zeros
         # Care should be taken S.T. dict is initialized with valid, legal
@@ -314,8 +312,18 @@ def main():
 
         if not plotting_comm_queue.full():
             graphed_data = [experiment.timestep]
-            graphed_data += [experiment.match_tor, experiment.match_tor_zeroed, experiment.matchF, experiment.matchF_zeroed]
-            graphed_data += [experiment.match_tor, experiment.match_tor_zeroed, experiment.matchF, experiment.matchF_zeroed]
+            graphed_data += [
+                experiment.match_tor,
+                experiment.match_tor_zeroed,
+                experiment.matchF,
+                experiment.matchF_zeroed,
+            ]
+            graphed_data += [
+                experiment.match_tor,
+                experiment.match_tor_zeroed,
+                experiment.matchF,
+                experiment.matchF_zeroed,
+            ]
             plotting_comm_queue.put(graphed_data)
 
     # Exit all processes
@@ -331,7 +339,6 @@ def main():
         while not queue.empty():
             queue.get_nowait()
 
-    
 
 if __name__ == "__main__":
     main()
