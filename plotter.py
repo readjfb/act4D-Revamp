@@ -29,14 +29,14 @@ class MainWindow2(QtWidgets.QMainWindow):
 
         # TODO: Set num channels automatically based on length of data intake
         self.num_channels = 8
-        self.update_speed_ms = 50
+        self.update_speed_ms = 1
         self.window_size = 4
-        self.num_points = 200
+        self.num_points = 500
 
         self._init_timeseries()
 
         self.timer = QtCore.QTimer()
-        self.timer.setInterval(50)
+        self.timer.setInterval(self.update_speed_ms)
         self.timer.timeout.connect(lambda: self.update_plot_data(communication_queue))
         self.timer.start()
 

@@ -83,12 +83,12 @@ def default_demo(experiment, transfer):
         transfer["target_tor"] = experiment.target_tor
         transfer["low_lim_tor"] = experiment.low_lim_tor
         transfer["up_lim_tor"] = experiment.up_lim_tor
-        transfer["match_tor"] = experiment.match_tor
+        transfer["match_tor"] = experiment.match_tor_zeroed
 
         transfer["targetF"] = experiment.targetF
         transfer["low_limF"] = experiment.low_limF
         transfer["up_limF"] = experiment.up_limF
-        transfer["matchF"] = experiment.matchF
+        transfer["matchF"] = experiment.matchF_zeroed
 
         transfer["sound_trigger"] = experiment.sound_trigger
 
@@ -124,12 +124,12 @@ def zero_sensors(experiment, transfer):
         transfer["target_tor"] = experiment.target_tor
         transfer["low_lim_tor"] = experiment.low_lim_tor
         transfer["up_lim_tor"] = experiment.up_lim_tor
-        transfer["match_tor"] = experiment.match_tor
+        transfer["match_tor"] = experiment.match_tor_zeroed
 
         transfer["targetF"] = experiment.targetF
         transfer["low_limF"] = experiment.low_limF
         transfer["up_limF"] = experiment.up_limF
-        transfer["matchF"] = experiment.matchF
+        transfer["matchF"] = experiment.matchF_zeroed
 
         experiment.cache_tor = list()
         experiment.cacheF = list()
@@ -140,7 +140,7 @@ def zero_sensors(experiment, transfer):
             experiment.mode_state = "Default"
 
             experiment.tare_tor = sum(experiment.cache_tor) / len(experiment.cache_tor)
-            experiment.tareF = sum(experiment.cacheF) / len(experiment.cacheF)
+            experiment.tare_f = sum(experiment.cacheF) / len(experiment.cacheF)
 
             # TODO sound cue here
             print("Finished")
