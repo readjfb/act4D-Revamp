@@ -114,7 +114,11 @@ def zero_sensors(experiment, transfer):
     if experiment.mode_state == "START":
         # Do the audio cue; for now print
         print("Start")
+
+        experiment.saver.clear()
+
         experiment.mode_state = "Zeroing"
+        experiment.prev_time = experiment.timestep
 
     if experiment.mode_state == "Default":
         transfer["target_tor"] = experiment.target_tor
@@ -130,7 +134,7 @@ def zero_sensors(experiment, transfer):
         experiment.cache_tor = list()
         experiment.cacheF = list()
 
-    elif experiment.mode_stae == "Zeroing":
+    elif experiment.mode_state == "Zeroing":
         zero_time = 5
         if experiment.timestep - experiment.prev_time > zero_time:
             experiment.mode_state = "Default"
@@ -140,6 +144,7 @@ def zero_sensors(experiment, transfer):
 
             # TODO sound cue here
             print("Finished")
+            experiment.saver.save_data("Zero")
 
         experiment.cache_tor.append(experiment.match_tor)
         experiment.cacheF.append(experiment.matchF)
@@ -212,6 +217,8 @@ def main():
 
     experiment.experiment_mode = "DEMO"
     experiment.mode_state = "SHOULDER ELBOW"
+
+    experiment.saver = saver
 
     TRANSMIT_KEYS = [
         "target_tor",
@@ -330,18 +337,18 @@ def main():
             emonitor_queue.put(transfer)
 
         if not plotting_comm_queue.full():
-            graphed_data = [experiment.timestep]
-            graphed_data += [
+            # These are the values to be plotted. The first value MUST be the
+            # timestep, but the rest may be changed
+            graphed_data = [
+                experiment.timestep,
                 experiment.match_tor,
                 experiment.match_tor_zeroed,
+                experiment.tare_tor,
+                0,
                 experiment.matchF,
                 experiment.matchF_zeroed,
-            ]
-            graphed_data += [
-                experiment.match_tor,
-                experiment.match_tor_zeroed,
-                experiment.matchF,
-                experiment.matchF_zeroed,
+                experiment.tare_f,
+                0,
             ]
             plotting_comm_queue.put(graphed_data)
 

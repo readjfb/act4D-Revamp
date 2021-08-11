@@ -65,6 +65,7 @@ class MainWindow2(QtWidgets.QMainWindow):
 
     def update_plot_data(self, comm_queue):
         data = []
+        val = None
 
         while not comm_queue.empty():
             val = comm_queue.get_nowait()
