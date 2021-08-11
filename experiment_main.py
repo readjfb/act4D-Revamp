@@ -71,8 +71,14 @@ class MainExperiment:
         if not self.cacheF:
             self.cacheF = list()
 
+"""
+experiment.mode_state will be set to START when the start button is pressed
+"""
 
 def default_demo(experiment, transfer):
+    if experiment.mode_state == "START":
+        experiment.mode_state = "SHOULDER ELBOW"
+
     if experiment.mode_state == "SHOULDER ELBOW":
         transfer["target_tor"] = experiment.target_tor
         transfer["low_lim_tor"] = experiment.low_lim_tor
@@ -97,11 +103,19 @@ def default_demo(experiment, transfer):
 
 
 def blank_screen(experiment, transfer):
+    if experiment.mode_state == "START":
+        pass
+
     transfer = transfer
 
 
 def zero_sensors(experiment, transfer):
     # To be created
+    if experiment.mode_state == "START":
+        # Do the audio cue; for now print
+        print("Start")
+        experiment.mode_state = "Zeroing"
+
     if experiment.mode_state == "Default":
         transfer["target_tor"] = experiment.target_tor
         transfer["low_lim_tor"] = experiment.low_lim_tor
@@ -123,6 +137,9 @@ def zero_sensors(experiment, transfer):
 
             experiment.tare_tor = sum(experiment.cache_tor) / len(experiment.cache_tor)
             experiment.tareF = sum(experiment.cacheF) / len(experiment.cacheF)
+
+            # TODO sound cue here
+            print("Finished")
 
         experiment.cache_tor.append(experiment.match_tor)
         experiment.cacheF.append(experiment.matchF)
@@ -265,6 +282,8 @@ def main():
                 experiment.trial_toggle = gui_data["Trial Toggle"]
                 experiment.testing_arm = gui_data["Testing Arm"]
                 experiment.experiment_mode = gui_data["Trial Type"]
+
+                experiment.mode_state = "START"
 
             # print(header, "|||", gui_data)
 
