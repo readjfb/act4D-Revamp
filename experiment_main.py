@@ -292,6 +292,8 @@ def main():
 
                 experiment.mode_state = "START"
 
+                saver.update_save_dir("Subject"+str(experiment.subject_number))
+
             # print(header, "|||", gui_data)
 
         if not data:
