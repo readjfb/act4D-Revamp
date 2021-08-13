@@ -52,18 +52,21 @@ class MainExperiment:
     cache_tor: List[float] = field(default_factory=list)
     cacheF: List[float] = field(default_factory=list)
 
+    mvt_tor: float = 0.0
+    mvt_f: float = 0.0
+
     tare_tor: float = 0.0
     tare_f: float = 0.0
 
     prev_time: float = 0.0
 
-    sound_trigger: List[bool] = field(default_factory=list)
+    sound_trigger: List[str] = field(default_factory=str)
 
     stop_trigger: bool = False
 
     def __post_init__(self):
         if not self.sound_trigger:
-            self.sound_trigger = [False] * 13
+            self.sound_trigger = []
 
         if not self.cache_tor:
             self.cache_tor = list()
@@ -113,11 +116,11 @@ def zero_sensors(experiment, transfer):
     # To be created
     if experiment.mode_state == "START":
         # Do the audio cue; for now print
-        print("Start")
+        transfer["sound_trigger"].append("starting")
 
         experiment.saver.clear()
 
-        experiment.mode_state = "Zeroing"
+        experiment.mode_state = "Wait"
         experiment.prev_time = experiment.timestep
 
     if experiment.mode_state == "Default":
@@ -134,6 +137,14 @@ def zero_sensors(experiment, transfer):
         experiment.cache_tor = list()
         experiment.cacheF = list()
 
+    elif experiment.mode_state == "Wait":
+        wait_time = 2
+        if experiment.timestep - experiment.prev_time > wait_time:
+            transfer["stop_trigger"] = True
+            transfer["sound_trigger"].append("relax")
+
+            experiment.mode_state = "Zeroing"
+
     elif experiment.mode_state == "Zeroing":
         zero_time = 5
         if experiment.timestep - experiment.prev_time > zero_time:
@@ -142,8 +153,8 @@ def zero_sensors(experiment, transfer):
             experiment.tare_tor = sum(experiment.cache_tor) / len(experiment.cache_tor)
             experiment.tare_f = sum(experiment.cacheF) / len(experiment.cacheF)
 
-            # TODO sound cue here
-            print("Finished")
+            transfer["stop_trigger"] = True
+            transfer["sound_trigger"].append("ending")
             experiment.saver.save_data("Zero")
 
         experiment.cache_tor.append(experiment.match_tor)
@@ -327,7 +338,7 @@ def main():
         # arguments
         transfer = dict.fromkeys(TRANSMIT_KEYS, 0)
 
-        transfer["sound_trigger"] = [False] * 13
+        transfer["sound_trigger"] = []
         transfer["stop_trigger"] = False
 
         # Call the function that corresponds to the current mode
