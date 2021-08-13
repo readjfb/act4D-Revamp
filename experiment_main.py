@@ -116,8 +116,7 @@ def zero_sensors(experiment, transfer):
     # To be created
     if experiment.mode_state == "START":
         # Do the audio cue; for now print
-        transfer["sound_trigger"].append("starting")
-
+        # transfer["stop_trigger"] = True
         experiment.saver.clear()
 
         experiment.mode_state = "Wait"
@@ -139,27 +138,34 @@ def zero_sensors(experiment, transfer):
 
     elif experiment.mode_state == "Wait":
         wait_time = 2
-        if experiment.timestep - experiment.prev_time > wait_time:
-            transfer["stop_trigger"] = True
-            transfer["sound_trigger"].append("relax")
+        transfer["sound_trigger"].append("starting")
 
+        if experiment.timestep - experiment.prev_time > wait_time:
             experiment.mode_state = "Zeroing"
+            experiment.prev_time = experiment.timestep
 
     elif experiment.mode_state == "Zeroing":
         zero_time = 5
+        transfer["sound_trigger"].append("relax")
+        
         if experiment.timestep - experiment.prev_time > zero_time:
-            experiment.mode_state = "Default"
+            experiment.mode_state = "Ending"
+            experiment.prev_time = experiment.timestep
 
             experiment.tare_tor = sum(experiment.cache_tor) / len(experiment.cache_tor)
             experiment.tare_f = sum(experiment.cacheF) / len(experiment.cacheF)
-
-            transfer["stop_trigger"] = True
-            transfer["sound_trigger"].append("ending")
+            
             experiment.saver.save_data("Zero")
 
         experiment.cache_tor.append(experiment.match_tor)
         experiment.cacheF.append(experiment.matchF)
 
+    elif experiment.mode_state == "Ending":
+        end_time = 0.5
+        transfer["sound_trigger"].append("ending")
+
+        if experiment.timestep - experiment.prev_time > end_time:
+            experiment.mode_state = "Default"
 
 def main():
     # Emonitor section, delegating the subprocess and connection
