@@ -320,7 +320,7 @@ def run(interval, conn):
             for sound in emonitor.sound_trigger:
                 if not sound in emonitor.sounds_playing:
                     emonitor.sounds_playing.clear()
-                    print(f"Sound {sound} is playing")
+                    # print(f"Sound {sound} is playing")
                     emonitor.players.append(SOUND_CUES[sound].play())
                     emonitor.sounds_playing.append(sound)
 
