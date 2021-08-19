@@ -113,7 +113,6 @@ def blank_screen(experiment, transfer):
 
 
 def zero_sensors(experiment, transfer):
-    # To be created
     if experiment.mode_state == "START":
         # Do the audio cue; for now print
         # transfer["stop_trigger"] = True
@@ -317,6 +316,9 @@ def main():
             continue
 
         experiment.match_tor, experiment.matchF, experiment.timestep = data
+
+        # invert experiment.match_tor
+        experiment.match_tor = -experiment.match_tor
 
         experiment.match_tor_zeroed = experiment.match_tor - experiment.tare_tor
         experiment.matchF_zeroed = experiment.matchF - experiment.tare_f
