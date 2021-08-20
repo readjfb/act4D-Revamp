@@ -33,12 +33,13 @@ class MainWindow2(QtWidgets.QMainWindow):
         self.window_size = 4
         self.num_points = 500
 
-        self._init_timeseries()
+        
         #Titles to be adjusted depending on what variables are graphed in experiment_main
         self.plot_titles = ["Matching Elbow Torque", "Matching Elbow Torque Zeroed",
                             "Tared Elbow Torque", "", "Matching Shoulder Force",
                             "Matching Shoulder Force Zeroed", "Tared Shoulder Force", ""]
 
+        self._init_timeseries()
         self.timer = QtCore.QTimer()
         self.timer.setInterval(self.update_speed_ms)
         self.timer.timeout.connect(lambda: self.update_plot_data(communication_queue))
@@ -76,11 +77,11 @@ class MainWindow2(QtWidgets.QMainWindow):
                 self.window.close()
                 self.app.quit()
                 return
-
-        data = val
-
-        if not data:
+        
+        if not val:
             return
+
+        data, titles = val
 
         # First value will be time, next 8 will be datapoints
         current_time = data[0]
@@ -92,12 +93,15 @@ class MainWindow2(QtWidgets.QMainWindow):
             print("Data length is invalid!!!")
             return
 
+        self.plot_titles = titles
+
         for count, datum in enumerate(data_sensors):
             self.parameters[count].append(datum)
 
             # This might not be the most optimal way, but it works fairly well
             # with the deques. Clearing is essential
             self.plots[count].plot(self.times, self.parameters[count], clear=True)
+            self.plots[count].setTitle(self.plot_titles[count])
 
 
 def animation_control(comm_queue):

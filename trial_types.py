@@ -1,1 +1,1 @@
-trial_types = ["DEMO", "BLANK", "ZERO"]
+trial_types = ["DEMO", "BLANK", "ZERO", "MVT"]

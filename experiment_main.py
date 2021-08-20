@@ -176,14 +176,6 @@ def mvt_flex(experiment, transfer):
     MVT_flex_ending:    The participant is told to relax (by the experimenter),
                         and data is saved once the participant is relaxed
     '''
-    start_time, mvt_duration = 2, 5
-    if experiment.mode_state == "START":
-        transfer["sound_trigger"].append("starting")
-        experiment.saver.clear()
-
-        experiment.mode_state = "MVT_flex_in"
-        experiment.prev_time = experiment.timestep
-
     if experiment.mode_state == "Default":
         transfer["target_tor"] = experiment.target_tor
         transfer["low_lim_tor"] = experiment.low_lim_tor
@@ -198,14 +190,23 @@ def mvt_flex(experiment, transfer):
         experiment.cache_tor = list()
         experiment.cacheF = list()
 
+    start_time, mvt_duration = 2, 5
+    if experiment.mode_state == "START":
+        transfer["sound_trigger"].append("starting")
+        experiment.saver.clear()
+
+        experiment.mode_state = "MVT_flex_in"
+        experiment.prev_time = experiment.timestep
 
     elif experiment.mode_state == "MVT_flex_in":
+        transfer["sound_trigger"].append("in")
         if experiment.timestep - experiment.prev_time > start_time:
             experiment.mode_state = "MVT_flex_hold"
             experiment.prev_time = experiment.timestep
-            transfer["sound_trigger"].append("in")
+            
 
     elif experiment.mode_state == "MVT_flex_hold":
+        transfer["sound_trigger"].append("hold")
         if experiment.timestep - experiment.prev_time > mvt_duration:
             experiment.mode_state = "MVT_flex_ending"
             experiment.prev_time = experiment.timestep
@@ -216,15 +217,23 @@ def mvt_flex(experiment, transfer):
     elif experiment.mode_state == "MVT_flex_ending":
         # Could implement logic to automatically call for relaxation when torque stops increasing,
         # as opposed to relying on the experimenter to tell the participant to relax (as in the video)
-        if experiment.match_tor_zeroed < 1:
+        if experiment.match_tor_zeroed < .2:
             #Not sure if this magnitude is appropriate for relaxation
-            transfer["sound_trigger"].append("ending")
             experiment.max_flex_tor = max(experiment.cache_tor)
-            experiment.mode_state = "Default"
+            experiment.mode_state = "ending"
+
             experiment.saver.save_data("MVT_Flexion")
+            experiment.prev_time = experiment.timestep
 
         experiment.cache_tor.append(experiment.match_tor_zeroed)
         experiment.cacheF.append(experiment.matchF_zeroed)
+
+    elif experiment.mode_state == "ending":
+        end_time = 1
+        transfer["sound_trigger"].append("ending")
+
+        if experiment.timestep - experiment.prev_time > end_time:
+            experiment.mode_state = "Default"
 
 
 def mvt_exten(experiment, transfer):
@@ -333,6 +342,7 @@ def mvt_shoulder(experiment, transfer):
 
         experiment.cache_tor.append(experiment.match_tor_zeroed)
         experiment.cacheF.append(experiment.matchF_zeroed)
+
 def main():
     # Emonitor section, delegating the subprocess and connection
     QUEUES = []
@@ -476,8 +486,6 @@ def main():
 
                 saver.update_save_dir("Subject"+str(experiment.subject_number))
 
-            # print(header, "|||", gui_data)
-
         if not data:
             continue
 
@@ -526,7 +534,18 @@ def main():
         if not plotting_comm_queue.full():
             # These are the values to be plotted. The first value MUST be the
             # timestep, but the rest may be changed
-            graphed_data = [
+            graph_titles = [
+                "signal1",
+                "signal1_zeroed",
+                "tare_signal1",
+                "",
+                "signal2",
+                "signal2 zeroed",
+                "tare signal2",
+                ""
+            ]
+
+            graph_data = [
                 experiment.timestep,
                 experiment.match_tor,
                 experiment.match_tor_zeroed,
@@ -537,7 +556,7 @@ def main():
                 experiment.tare_f,
                 0,
             ]
-            plotting_comm_queue.put(graphed_data)
+            plotting_comm_queue.put((graph_data, graph_titles))
 
     # Exit all processes
 
