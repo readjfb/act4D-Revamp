@@ -22,7 +22,7 @@ class MainWindow2(QtWidgets.QMainWindow):
     def __init__(self, communication_queue=None, app=None, *args, **kwargs):
         super(MainWindow2, self).__init__(*args, **kwargs)
 
-        self.window = pg.GraphicsWindow()
+        self.window = pg.GraphicsWindow(title="Torque and Force Plots")
         self.window.show()
 
         self.app = app
@@ -34,6 +34,10 @@ class MainWindow2(QtWidgets.QMainWindow):
         self.num_points = 500
 
         self._init_timeseries()
+        #Titles to be adjusted depending on what variables are graphed in experiment_main
+        self.plot_titles = ["Matching Elbow Torque", "Matching Elbow Torque Zeroed",
+                            "Tared Elbow Torque", "", "Matching Shoulder Force",
+                            "Matching Shoulder Force Zeroed", "Tared Shoulder Force", ""]
 
         self.timer = QtCore.QTimer()
         self.timer.setInterval(self.update_speed_ms)
@@ -51,15 +55,12 @@ class MainWindow2(QtWidgets.QMainWindow):
         self.times = deque([], maxlen=self.num_points)
 
         for i in range(self.num_channels):
-            # TODO: create better layout
-            p = self.window.addPlot(row=i, col=0)
+            p = self.window.addPlot(row=i % 4, col=i//4)
             p.showAxis("left", True)
             p.setMenuEnabled("left", False)
             p.showAxis("bottom", True)
             p.setMenuEnabled("bottom", False)
-            # TODO: Create list of titles
-            if i == 0:
-                p.setTitle("Torque Plot")
+            p.setTitle(self.plot_titles[i])
             self.plots.append(p)
             self.parameters.append(deque([], maxlen=self.num_points))
 

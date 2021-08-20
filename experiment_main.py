@@ -9,7 +9,6 @@ from typing import List
 from collections import deque
 from plotter import animation_control
 
-
 @dataclass
 class MainExperiment:
     # Experimental state and control
@@ -18,7 +17,7 @@ class MainExperiment:
     state_section: str = "AUTO"
     paused: bool = False
 
-    # Experimental variables for controling the output
+    # Experimental variables for controlling the output
     target_tor: float = 0.6
     low_lim_tor: float = 0.5
     up_lim_tor: float = 0.7
@@ -57,6 +56,10 @@ class MainExperiment:
 
     tare_tor: float = 0.0
     tare_f: float = 0.0
+
+    max_flex_tor: float = 0.0
+    max_exten_tor: float = 0.0
+    maxF: float = 0.0
 
     prev_time: float = 0.0
 
@@ -146,14 +149,14 @@ def zero_sensors(experiment, transfer):
     elif experiment.mode_state == "Zeroing":
         zero_time = 5
         transfer["sound_trigger"].append("relax")
-        
+
         if experiment.timestep - experiment.prev_time > zero_time:
             experiment.mode_state = "Ending"
             experiment.prev_time = experiment.timestep
 
             experiment.tare_tor = sum(experiment.cache_tor) / len(experiment.cache_tor)
             experiment.tare_f = sum(experiment.cacheF) / len(experiment.cacheF)
-            
+
             experiment.saver.save_data("Zero")
 
         experiment.cache_tor.append(experiment.match_tor)
@@ -166,6 +169,170 @@ def zero_sensors(experiment, transfer):
         if experiment.timestep - experiment.prev_time > end_time:
             experiment.mode_state = "Default"
 
+def mvt_flex(experiment, transfer):
+    '''
+    MVT_flex_in:        Participant is told to pull in at the elbow (flexion)
+    MVT_flex_hold:      Data is collected for at least mvt_duration
+    MVT_flex_ending:    The participant is told to relax (by the experimenter),
+                        and data is saved once the participant is relaxed
+    '''
+    start_time, mvt_duration = 2, 5
+    if experiment.mode_state == "START":
+        transfer["sound_trigger"].append("starting")
+        experiment.saver.clear()
+
+        experiment.mode_state = "MVT_flex_in"
+        experiment.prev_time = experiment.timestep
+
+    if experiment.mode_state == "Default":
+        transfer["target_tor"] = experiment.target_tor
+        transfer["low_lim_tor"] = experiment.low_lim_tor
+        transfer["up_lim_tor"] = experiment.up_lim_tor
+        transfer["match_tor"] = experiment.match_tor_zeroed
+
+        transfer["targetF"] = experiment.targetF
+        transfer["low_limF"] = experiment.low_limF
+        transfer["up_limF"] = experiment.up_limF
+        transfer["matchF"] = experiment.matchF_zeroed
+
+        experiment.cache_tor = list()
+        experiment.cacheF = list()
+
+
+    elif experiment.mode_state == "MVT_flex_in":
+        if experiment.timestep - experiment.prev_time > start_time:
+            experiment.mode_state = "MVT_flex_hold"
+            experiment.prev_time = experiment.timestep
+            transfer["sound_trigger"].append("in")
+
+    elif experiment.mode_state == "MVT_flex_hold":
+        if experiment.timestep - experiment.prev_time > mvt_duration:
+            experiment.mode_state = "MVT_flex_ending"
+            experiment.prev_time = experiment.timestep
+
+        experiment.cache_tor.append(experiment.match_tor_zeroed)
+        experiment.cacheF.append(experiment.matchF_zeroed)
+
+    elif experiment.mode_state == "MVT_flex_ending":
+        # Could implement logic to automatically call for relaxation when torque stops increasing,
+        # as opposed to relying on the experimenter to tell the participant to relax (as in the video)
+        if experiment.match_tor_zeroed < 1:
+            #Not sure if this magnitude is appropriate for relaxation
+            transfer["sound_trigger"].append("ending")
+            experiment.max_flex_tor = max(experiment.cache_tor)
+            experiment.mode_state = "Default"
+            experiment.saver.save_data("MVT_Flexion")
+
+        experiment.cache_tor.append(experiment.match_tor_zeroed)
+        experiment.cacheF.append(experiment.matchF_zeroed)
+
+
+def mvt_exten(experiment, transfer):
+    '''
+    MVT_exten_out:      Participant is told to push out at the elbow (extension)
+    MVT_exten_hold:     Data is collected for at least mvt_duration
+    MVT_exten_ending:   The participant is told to relax (by the experimenter),
+                        and data is saved once the participant is relaxed
+    '''
+    start_time, mvt_duration = 2, 5
+    if experiment.mode_state == "START":
+        transfer["sound_trigger"].append("starting")
+        experiment.saver.clear()
+
+        experiment.mode_state = "MVT_exten_out"
+        experiment.prev_time = experiment.timestep
+
+    if experiment.mode_state == "Default":
+        transfer["target_tor"] = experiment.target_tor
+        transfer["low_lim_tor"] = experiment.low_lim_tor
+        transfer["up_lim_tor"] = experiment.up_lim_tor
+        transfer["match_tor"] = experiment.match_tor_zeroed
+
+        transfer["targetF"] = experiment.targetF
+        transfer["low_limF"] = experiment.low_limF
+        transfer["up_limF"] = experiment.up_limF
+        transfer["matchF"] = experiment.matchF_zeroed
+
+        experiment.cache_tor = list()
+        experiment.cacheF = list()
+
+    elif experiment.mode_state == "MVT_exten_out":
+        if experiment.timestep - experiment.prev_time > start_time:
+            experiment.mode_state = "MVT_exten_hold"
+            experiment.prev_time = experiment.timestep
+            transfer["sound_trigger"].append("out")
+
+    elif experiment.mode_state == "MVT_exten_hold":
+        if experiment.timestep - experiment.prev_time > mvt_duration:
+            experiment.mode_state = "MVT_exten_ending"
+            experiment.prev_time = experiment.timestep
+
+        experiment.cache_tor.append(experiment.match_tor_zeroed)
+        experiment.cacheF.append(experiment.matchF_zeroed)
+
+    elif experiment.mode_state == "MVT_exten_ending":
+        # Assumes that extension results in negative torques? (to differentiate from flexion)
+        if experiment.match_tor_zeroed > -1:
+            transfer["sound_trigger"].append("ending")
+            experiment.max_exten_tor = min(experiment.cache_tor)  # Check if negative
+            experiment.mode_state = "Default"
+            experiment.saver.save_data("MVT_Extension")
+
+        experiment.cache_tor.append(experiment.match_tor_zeroed)
+        experiment.cacheF.append(experiment.matchF_zeroed)
+
+def mvt_shoulder(experiment, transfer):
+    '''
+    MVT_shoulder_up: Participant abducts the shoulder
+    MVT_shoulder_hold: Data is collected for at least mvt_duration
+    MVT_shoulder_ending: Participant relaxes, data is saved once the participant is relaxed
+    '''
+    start_time, mvt_duration = 2, 5
+    if experiment.mode_state == "START":
+        transfer["sound_trigger"].append("starting")
+        experiment.saver.clear()
+
+        experiment.mode_state = "MVT_shoulder_up"
+        experiment.prev_time = experiment.timestep
+
+    if experiment.mode_state == "Default":
+        transfer["target_tor"] = experiment.target_tor
+        transfer["low_lim_tor"] = experiment.low_lim_tor
+        transfer["up_lim_tor"] = experiment.up_lim_tor
+        transfer["match_tor"] = experiment.match_tor_zeroed
+
+        transfer["targetF"] = experiment.targetF
+        transfer["low_limF"] = experiment.low_limF
+        transfer["up_limF"] = experiment.up_limF
+        transfer["matchF"] = experiment.matchF_zeroed
+
+        experiment.cache_tor = list()
+        experiment.cacheF = list()
+
+    elif experiment.mode_state == "MVT_shoulder_up":
+        if experiment.timestep - experiment.prev_time > start_time:
+            experiment.mode_state = "MVT_shoulder_hold"
+            experiment.prev_time = experiment.timestep
+            transfer["sound_trigger"].append("up")
+
+    elif experiment.mode_state == "MVT_shoulder_hold":
+        if experiment.timestep - experiment.prev_time > mvt_duration:
+            experiment.mode_state = "MVT_shoulder_ending"
+            experiment.prev_time = experiment.timestep
+
+        experiment.cache_tor.append(experiment.match_tor_zeroed)
+        experiment.cacheF.append(experiment.matchF_zeroed)
+
+    elif experiment.mode_state == "MVT_shoulder_ending":
+        if experiment.matchF_zeroed < 1:
+            # Not sure if this magnitude is appropriate for relaxation
+            transfer["sound_trigger"].append("ending")
+            experiment.maxF = max(experiment.cacheF)
+            experiment.mode_state = "Default"
+            experiment.saver.save_data("MVT_Shoulder")
+
+        experiment.cache_tor.append(experiment.match_tor_zeroed)
+        experiment.cacheF.append(experiment.matchF_zeroed)
 def main():
     # Emonitor section, delegating the subprocess and connection
     QUEUES = []
@@ -200,8 +367,7 @@ def main():
     )
     data_intake_p.start()
 
-    # Initialize plotting???
-
+    # Initialize plotting
     plotting_comm_queue = Queue()
     QUEUES.append(plotting_comm_queue)
     plotting_p = Process(target=animation_control, args=(plotting_comm_queue,))
@@ -249,7 +415,7 @@ def main():
         "stop_trigger",
     ]
 
-    MODE_SWITCHER = {"DEMO": default_demo, "BLANK": blank_screen, "ZERO": zero_sensors}
+    MODE_SWITCHER = {"DEMO": default_demo, "BLANK": blank_screen, "ZERO": zero_sensors, "MVT": mvt_flex}
 
     # If any of the windows are closed, quit for now; this is something that could be changed
 
@@ -276,12 +442,12 @@ def main():
 
             elif header == "Subject info":
                 experiment.participant_age = gui_data["Age"]
-                experiment.particiapnt_years_since_stroke = gui_data[
+                experiment.participant_years_since_stroke = gui_data[
                     "Years since stroke"
                 ]
                 experiment.participant_dominant_arm = gui_data["Dominant Arm"]
                 experiment.participant_paretic_arm = gui_data["Recovery Paretic Arm"]
-                experiment.partipant_gender = gui_data["Gender"]
+                experiment.participant_gender = gui_data["Gender"]
 
                 experiment.rNSA = gui_data["rNSA"]
                 experiment.FMA = gui_data["FMA"]
