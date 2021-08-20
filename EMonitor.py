@@ -98,7 +98,7 @@ def run(interval, conn):
     # Load the sounds
     # SOUND_DIRECTORY = "C:\\Users\\pthms\\Desktop\\Local UDP Revamp\\soundCues\\"
     # SOUND_DIRECTORY = "soundCues\\"
-    SOUND_DIRECTORY = os.getcwd() + "\\soundCues\\"
+    SOUND_DIRECTORY = "soundCues/"
     FILE_NAMES = {
         "hold": "hold.wav",
         "in": "in.wav",
