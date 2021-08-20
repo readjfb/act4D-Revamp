@@ -51,6 +51,9 @@ class MainExperiment:
     cache_tor: List[float] = field(default_factory=list)
     cacheF: List[float] = field(default_factory=list)
 
+    mvt_tor: float = 0.0
+    mvt_f: float = 0.0
+
     tare_tor: float = 0.0
     tare_f: float = 0.0
 
@@ -113,7 +116,6 @@ def blank_screen(experiment, transfer):
 
 
 def zero_sensors(experiment, transfer):
-    # To be created
     if experiment.mode_state == "START":
         # Do the audio cue; for now print
         # transfer["stop_trigger"] = True
@@ -195,6 +197,7 @@ def mvt_flex(experiment, transfer):
 
         experiment.cache_tor = list()
         experiment.cacheF = list()
+
 
     elif experiment.mode_state == "MVT_flex_in":
         if experiment.timestep - experiment.prev_time > start_time:
@@ -479,6 +482,9 @@ def main():
             continue
 
         experiment.match_tor, experiment.matchF, experiment.timestep = data
+
+        # invert experiment.match_tor
+        experiment.match_tor = -experiment.match_tor
 
         experiment.match_tor_zeroed = experiment.match_tor - experiment.tare_tor
         experiment.matchF_zeroed = experiment.matchF - experiment.tare_f
