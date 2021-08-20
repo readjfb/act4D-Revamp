@@ -118,7 +118,6 @@ def blank_screen(experiment, transfer):
 def zero_sensors(experiment, transfer):
     if experiment.mode_state == "START":
         # Do the audio cue; for now print
-        # transfer["stop_trigger"] = True
         experiment.saver.clear()
 
         experiment.mode_state = "Wait"
