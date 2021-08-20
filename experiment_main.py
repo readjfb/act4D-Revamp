@@ -60,13 +60,13 @@ class MainExperiment:
 
     prev_time: float = 0.0
 
-    sound_trigger: List[bool] = field(default_factory=list)
+    sound_trigger: List[str] = field(default_factory=str)
 
     stop_trigger: bool = False
 
     def __post_init__(self):
         if not self.sound_trigger:
-            self.sound_trigger = [False] * 13
+            self.sound_trigger = []
 
         if not self.cache_tor:
             self.cache_tor = list()
@@ -116,10 +116,10 @@ def zero_sensors(experiment, transfer):
     # To be created
     if experiment.mode_state == "START":
         # Do the audio cue; for now print
-        transfer["sound_trigger"].append("starting")
+        # transfer["stop_trigger"] = True
         experiment.saver.clear()
 
-        experiment.mode_state = "Zeroing"
+        experiment.mode_state = "Wait"
         experiment.prev_time = experiment.timestep
 
     if experiment.mode_state == "Default":
@@ -136,27 +136,43 @@ def zero_sensors(experiment, transfer):
         experiment.cache_tor = list()
         experiment.cacheF = list()
 
+    elif experiment.mode_state == "Wait":
+        wait_time = 2
+        transfer["sound_trigger"].append("starting")
+
+        if experiment.timestep - experiment.prev_time > wait_time:
+            experiment.mode_state = "Zeroing"
+            experiment.prev_time = experiment.timestep
+
     elif experiment.mode_state == "Zeroing":
         zero_time = 5
+        transfer["sound_trigger"].append("relax")
+
         if experiment.timestep - experiment.prev_time > zero_time:
-            experiment.mode_state = "Default"
+            experiment.mode_state = "Ending"
+            experiment.prev_time = experiment.timestep
 
             experiment.tare_tor = sum(experiment.cache_tor) / len(experiment.cache_tor)
             experiment.tare_f = sum(experiment.cacheF) / len(experiment.cacheF)
 
-            # TODO sound cue here
-            print("Finished")
             experiment.saver.save_data("Zero")
 
         experiment.cache_tor.append(experiment.match_tor)
         experiment.cacheF.append(experiment.matchF)
 
+    elif experiment.mode_state == "Ending":
+        end_time = 0.5
+        transfer["sound_trigger"].append("ending")
+
+        if experiment.timestep - experiment.prev_time > end_time:
+            experiment.mode_state = "Default"
+
 def mvt_flex(experiment, transfer):
     '''
-    MVT_flex_in:     Participant is told to pull in at the elbow (flexion)
-    MVT_flex_hold:     Data is collected for at least five seconds
-    MVT_flex_ending:     The participant is told to relax (by the experimenter),
-                    and data is saved once the participant is relaxed
+    MVT_flex_in:        Participant is told to pull in at the elbow (flexion)
+    MVT_flex_hold:      Data is collected for at least mvt_duration
+    MVT_flex_ending:    The participant is told to relax (by the experimenter),
+                        and data is saved once the participant is relaxed
     '''
     start_time, mvt_duration = 2, 5
     if experiment.mode_state == "START":
@@ -191,35 +207,36 @@ def mvt_flex(experiment, transfer):
             experiment.mode_state = "MVT_flex_ending"
             experiment.prev_time = experiment.timestep
 
-        experiment.cache_tor.append(experiment.match_tor)
-        experiment.cacheF.append(experiment.matchF)
+        experiment.cache_tor.append(experiment.match_tor_zeroed)
+        experiment.cacheF.append(experiment.matchF_zeroed)
 
     elif experiment.mode_state == "MVT_flex_ending":
-        # Could implement logic to automatically call for relaxation when torque stops increasing
-        # As opposed to relying on the experimenter to tell the participant to relax (as in the video)
-        if experiment.match_tor < 1: #Not sure if this magnitude is appropriate for relaxation
+        # Could implement logic to automatically call for relaxation when torque stops increasing,
+        # as opposed to relying on the experimenter to tell the participant to relax (as in the video)
+        if experiment.match_tor_zeroed < 1:
+            #Not sure if this magnitude is appropriate for relaxation
             transfer["sound_trigger"].append("ending")
             experiment.max_flex_tor = max(experiment.cache_tor)
             experiment.mode_state = "Default"
             experiment.saver.save_data("MVT_Flexion")
 
-        experiment.cache_tor.append(experiment.match_tor)
-        experiment.cacheF.append(experiment.matchF)
+        experiment.cache_tor.append(experiment.match_tor_zeroed)
+        experiment.cacheF.append(experiment.matchF_zeroed)
 
 
 def mvt_exten(experiment, transfer):
     '''
-    MVT_exten_out:    Participant is told to push out at the elbow (extension)
-    MVT_exten_hold:    Data is collected for at least five seconds
-    MVT_exten_ending:    The participant is told to relax (by the experimenter),
-                    and data is saved once the participant is relaxed
+    MVT_exten_out:      Participant is told to push out at the elbow (extension)
+    MVT_exten_hold:     Data is collected for at least mvt_duration
+    MVT_exten_ending:   The participant is told to relax (by the experimenter),
+                        and data is saved once the participant is relaxed
     '''
     start_time, mvt_duration = 2, 5
     if experiment.mode_state == "START":
         transfer["sound_trigger"].append("starting")
         experiment.saver.clear()
 
-        experiment.mode_state = "MVT_exten_in"
+        experiment.mode_state = "MVT_exten_out"
         experiment.prev_time = experiment.timestep
 
     if experiment.mode_state == "Default":
@@ -236,7 +253,7 @@ def mvt_exten(experiment, transfer):
         experiment.cache_tor = list()
         experiment.cacheF = list()
 
-    elif experiment.mode_state == "MVT_exten_in":
+    elif experiment.mode_state == "MVT_exten_out":
         if experiment.timestep - experiment.prev_time > start_time:
             experiment.mode_state = "MVT_exten_hold"
             experiment.prev_time = experiment.timestep
@@ -247,25 +264,24 @@ def mvt_exten(experiment, transfer):
             experiment.mode_state = "MVT_exten_ending"
             experiment.prev_time = experiment.timestep
 
-        experiment.cache_tor.append(experiment.match_tor)
-        experiment.cacheF.append(experiment.matchF)
+        experiment.cache_tor.append(experiment.match_tor_zeroed)
+        experiment.cacheF.append(experiment.matchF_zeroed)
 
-    elif experiment.mode_state == "MVT_exten_2":
-
+    elif experiment.mode_state == "MVT_exten_ending":
         # Assumes that extension results in negative torques? (to differentiate from flexion)
-        if experiment.match_tor > -1:
+        if experiment.match_tor_zeroed > -1:
             transfer["sound_trigger"].append("ending")
             experiment.max_exten_tor = min(experiment.cache_tor)  # Check if negative
             experiment.mode_state = "Default"
             experiment.saver.save_data("MVT_Extension")
 
-        experiment.cache_tor.append(experiment.match_tor)
-        experiment.cacheF.append(experiment.matchF)
+        experiment.cache_tor.append(experiment.match_tor_zeroed)
+        experiment.cacheF.append(experiment.matchF_zeroed)
 
 def mvt_shoulder(experiment, transfer):
     '''
     MVT_shoulder_up: Participant abducts the shoulder
-    MVT_shoulder_hold: Data is collected for at least five seconds
+    MVT_shoulder_hold: Data is collected for at least mvt_duration
     MVT_shoulder_ending: Participant relaxes, data is saved once the participant is relaxed
     '''
     start_time, mvt_duration = 2, 5
@@ -301,20 +317,19 @@ def mvt_shoulder(experiment, transfer):
             experiment.mode_state = "MVT_shoulder_ending"
             experiment.prev_time = experiment.timestep
 
-        experiment.cache_tor.append(experiment.match_tor)
-        experiment.cacheF.append(experiment.matchF)
+        experiment.cache_tor.append(experiment.match_tor_zeroed)
+        experiment.cacheF.append(experiment.matchF_zeroed)
 
     elif experiment.mode_state == "MVT_shoulder_ending":
-
-        if experiment.matchF < 1:  # Not sure if this magnitude is appropriate for relaxation
+        if experiment.matchF_zeroed < 1:
+            # Not sure if this magnitude is appropriate for relaxation
             transfer["sound_trigger"].append("ending")
             experiment.maxF = max(experiment.cacheF)
             experiment.mode_state = "Default"
             experiment.saver.save_data("MVT_Shoulder")
 
-        experiment.cache_tor.append(experiment.match_tor)
-        experiment.cacheF.append(experiment.matchF)
-
+        experiment.cache_tor.append(experiment.match_tor_zeroed)
+        experiment.cacheF.append(experiment.matchF_zeroed)
 def main():
     # Emonitor section, delegating the subprocess and connection
     QUEUES = []
@@ -456,6 +471,8 @@ def main():
 
                 experiment.mode_state = "START"
 
+                saver.update_save_dir("Subject"+str(experiment.subject_number))
+
             # print(header, "|||", gui_data)
 
         if not data:
@@ -489,7 +506,7 @@ def main():
         # arguments
         transfer = dict.fromkeys(TRANSMIT_KEYS, 0)
 
-        transfer["sound_trigger"] = [False] * 13
+        transfer["sound_trigger"] = []
         transfer["stop_trigger"] = False
 
         # Call the function that corresponds to the current mode
