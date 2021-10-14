@@ -25,7 +25,7 @@ class NI_Interface:
     def read_samples(self):
         """Reads in the samples from the daqtask
 
-        NOTE: This is using interpolation to figure out the timesteps, so I 
+        NOTE: This is using interpolation to figure out the timesteps, so I
         can't promise that the times are *exactly* accurate
 
         Returns:
