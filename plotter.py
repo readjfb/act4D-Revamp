@@ -77,6 +77,8 @@ class MainWindow2(QtWidgets.QMainWindow):
                 self.window.close()
                 self.app.quit()
                 return
+              
+            data = val
         
         if not val:
             return
