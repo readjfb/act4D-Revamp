@@ -273,5 +273,5 @@ def launchGUI(conn, in_conn):
 
 
 if __name__=='__main__':
-    launchGUI(conn=Queue(),in_conn=Queue())
+    #launchGUI(conn=Queue(),in_conn=Queue())
     pass
