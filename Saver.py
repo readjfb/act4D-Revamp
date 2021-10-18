@@ -18,6 +18,9 @@ class data_saver(object):
         
         self.header = None
 
+    def update_save_dir(self, save_directory):
+        self.save_dir = os.getcwd() + "/data/" + save_directory
+
     def add_data(self, line):
         """Add a list to be appended
 

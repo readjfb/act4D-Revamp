@@ -25,8 +25,8 @@ class EMonitor:
         self.low_limF = 1
         self.matchF = 1
 
-        self.sound_trigger = [False for i in range(self.n_sounds)]
-        self.sounds_playing = list([False for i in range(self.n_sounds)])
+        self.sound_trigger = []
+        self.sounds_playing = []
         self.players = []
 
         self.stop_trigger = 0
@@ -66,8 +66,6 @@ class EMonitor:
         # This should be a single boolean value
         self.stop_trigger = io_array['stop_trigger']
 
-        # print(self.match_tor, self.matchF)
-
 # Note: We should refactor this so that it's not running in a huge function
 # It's not good stylistically
 def run(interval, conn):
@@ -98,31 +96,32 @@ def run(interval, conn):
     pyglet.gl.glClearColor(*WHITE, 255)
 
     # Load the sounds
-    SOUND_DIRECTORY = "C:\\Users\\pthms\\Desktop\\Local UDP Revamp\\soundCues\\"
-    # SOUND_DIRECTORY = os.getcwd() + "\\soundCues\\"
-    FILE_NAMES = [
-        "hold.wav",
-        "in.wav",
-        "out.wav",
-        "match.wav",
-        "relax.wav",
-        "startingtrial.wav",
-        "endingtrial.wav",
-        "Out of Range.wav",
-        "Wrong Direction.wav",
-        "in.wav",
-        "out.wav",
-        "up.wav",
-        "down.wav",
-    ]
+    # SOUND_DIRECTORY = "C:\\Users\\pthms\\Desktop\\Local UDP Revamp\\soundCues\\"
+    # SOUND_DIRECTORY = "soundCues\\"
+    SOUND_DIRECTORY = "soundCues/"
+    FILE_NAMES = {
+        "hold": "hold.wav",
+        "in": "in.wav",
+        "out": "out.wav",
+        "match": "match.wav",
+        "relax": "relax.wav",
+        "starting": "startingtrial.wav",
+        "ending": "endingtrial.wav",
+        "out of range": "Out of Range.wav",
+        "wrong direction": "Wrong Direction.wav",
+        "in2": "in.wav",
+        "out2": "out.wav",
+        "up": "up.wav",
+        "down": "down.wav",
+    }
 
-    SOUND_CUES = []
-    for file in FILE_NAMES:
-        n = SOUND_DIRECTORY + file
+    SOUND_CUES = {}
+    for file in FILE_NAMES.keys():
+        n = SOUND_DIRECTORY + FILE_NAMES[file]
 
         # print(f"Loading {n}")
 
-        SOUND_CUES.append(pyglet.media.load(n, streaming=False))
+        SOUND_CUES[file] = (pyglet.media.load(n, streaming=False))
     print(f"Loaded {len(SOUND_CUES)} sounds successfully")
 
     # Initialize the EMonitor
@@ -313,16 +312,18 @@ def run(interval, conn):
             fps_display.draw()
 
             # Sound stuff here
-            for i in range(emonitor.n_sounds):
-                if emonitor.sound_trigger[i] and not emonitor.sounds_playing[i]:
-                    print(f"Sound {i} is playing")
-                    emonitor.players.append(SOUND_CUES[i].play())
-                    emonitor.sounds_playing[i] = True
-
             if emonitor.stop_trigger:
                 while emonitor.players:
                     emonitor.players.pop().pause()
-                    emonitor.sounds_playing = [False] * emonitor.n_sounds
+                emonitor.sounds_playing.clear()
+
+            for sound in emonitor.sound_trigger:
+                if not sound in emonitor.sounds_playing:
+                    emonitor.sounds_playing.clear()
+                    # print(f"Sound {sound} is playing")
+                    emonitor.players.append(SOUND_CUES[sound].play())
+                    emonitor.sounds_playing.append(sound)
+
         except ZeroDivisionError:
             print("Zero division detected")
             pass

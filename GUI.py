@@ -20,7 +20,7 @@ class GUI:
         self.frame3 = ttk.Frame(self.notebk, width = 400, height = 400, relief = tk.SUNKEN)
         self.frame4 = ttk.Frame(self.notebk, width = 400, height = 400, relief = tk.SUNKEN)
         self.frame5 = ttk.Frame(self.notebk, width = 400, height = 400, relief = tk.SUNKEN)
-        
+
         self.notebk.add(self.frame1, text = 'General')
         self.notebk.add(self.frame2, text = 'Subject Info')
         self.notebk.add(self.frame3, text = 'Jacobean Constants')
@@ -52,7 +52,7 @@ class GUI:
         self.ArmTypes = ['Left','Right']
         self.testArmType = tk.OptionMenu(self.frame1, self.testArmDef, *self.ArmTypes)
         self.testArmType.grid(column=1, row=2, padx=5, pady=5)
-        
+
         self.start = ttk.Button(self.frame1, text='Start Trial', command=self.start)
         self.start.grid(column=0, row=3, padx=5, pady=5)
         self.pauseFlag = False
@@ -78,7 +78,7 @@ class GUI:
 
         self.quit = ttk.Button(self.frame1, text='Exit', command=self.close)
         self.quit.grid(column=3, row=5, padx=5, pady=5)
-        
+
         # Subject Info Pane
         self.subjectInfo = ['Age', 'Gender', 'Subject Type', 'Years since stroke',
                             'rNSA', 'FMA', 'Dominant Arm', 'Recovery Paretic Arm']
@@ -112,7 +112,7 @@ class GUI:
 
         self.subjectInfo = ['Age', 'Subject Type', 'Years since stroke','rNSA', 'FMA',
                             'Dominant Arm', 'Recovery Paretic Arm', 'Gender']
-                
+
         self.subjectSub = ttk.Button(self.frame2, text="Submit", command=self.subjectSubmit)
         self.subjectSub.grid(row=len(self.subjectInfo),column=0, padx=5, pady=5)
 
@@ -123,7 +123,7 @@ class GUI:
         for i in range(len(self.jacobInfo)):
             tk.Label(self.frame3, text=self.jacobInfo[i]).grid(row=i, column=0, padx=5, pady=5)
             tk.Entry(self.frame3).grid(row=i, column=1)
-        
+
         self.jacobSub = ttk.Button(self.frame3, text="Submit", command=self.jacobSubmit)
         self.jacobSub.grid(row=len(self.jacobInfo),column=0, padx=5, pady=5)
 
@@ -145,7 +145,7 @@ class GUI:
 
         self.autoVal = tk.IntVar()
         self.autoVal.set(1)
-        
+
         self.autoOff = tk.Radiobutton(self.frame5, text="Off", variable=self.autoVal, value=1)
         self.autoOff.grid(row=1, column=0, padx=5, pady=5)
 
@@ -159,7 +159,7 @@ class GUI:
 
         self.trialNumSave = ttk.Button(self.frame5, text="Save")
         self.trialNumSave.grid(row=2,column=2, padx=5, pady=5)
-        
+
         self.pause = ttk.Button(self.frame5, text="Pause")
         self.pause.grid(row=3, column=0, padx=5, pady=5)
 
@@ -270,7 +270,7 @@ def launchGUI(conn, in_conn):
     gui = GUI(root, conn, in_conn)
     tk.mainloop()
     exit()
-    
+
 
 if __name__=='__main__':
     launchGUI(conn=Queue(),in_conn=Queue())
