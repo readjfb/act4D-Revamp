@@ -30,6 +30,7 @@ class GUI:
 
         # General Pane
         self.generalInfo = ["Subject Number", "Trial Toggle", "Testing Arm", "Trial Type"]
+        self.demo = False
 
         self.toggleDef = tk.StringVar(self.master)
         self.toggleTypes = ['Practice', 'Testing']
@@ -64,7 +65,7 @@ class GUI:
         self.trialTypes = trial_types
         self.trialFirst = 'Select a Trial Type'
         self.trialDef.set(self.trialFirst)
-        self.trialType = tk.OptionMenu(self.frame1, self.trialDef, *self.trialTypes)
+        self.trialType = tk.OptionMenu(self.frame1, self.trialDef, *self.trialTypes, command=self.demoSet)
         self.trialType.grid(column=0, row=4, padx=5, pady=5)
 
         self.generalStringVars = [self.toggleDef, self.testArmDef, self.trialDef]
@@ -225,9 +226,15 @@ class GUI:
             maxFinal = dict(zip(self.maxInfo, maxSaved))
             self.transmit("Maxes", maxFinal)
 
+    def demoSet(self, selection):
+        if selection == 'DEMO':
+            self.demo = True
+        else:
+            self.demo = False
+
     def start(self):
         generalSaved = []
-        if self.checkFields(self.frame1, self.generalStringVars, self.generalFirsts):
+        if self.checkFields(self.frame1, self.generalStringVars, self.generalFirsts) and not(self.demo):
             self.showError()
         else:
             for child in self.frame1.winfo_children():
@@ -266,5 +273,5 @@ def launchGUI(conn, in_conn):
     
 
 if __name__=='__main__':
-    #launchGUI(conn=Queue(),in_conn=Queue())
+    launchGUI(conn=Queue(),in_conn=Queue())
     pass
